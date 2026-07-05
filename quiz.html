@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>イベント業務管理士 学習アプリ</title>
+<style>
+  :root {
+    --primary: #2b4c7e;
+    --primary-dark: #1c3557;
+    --accent: #e0a458;
+    --correct: #3a9d5d;
+    --wrong: #c0392b;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --text: #2c2c2c;
+    --muted: #757575;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    padding: 24px 12px;
+  }
+  .app { width: 100%; max-width: 720px; }
+  h1 { font-size: 1.3rem; color: var(--primary-dark); text-align: center; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
+  .card {
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    padding: 22px;
+    margin-bottom: 16px;
+  }
+  .section-title { font-weight: bold; margin: 14px 0 6px; color: var(--primary-dark); font-size: 0.9rem; }
+  .section-title:first-child { margin-top: 0; }
+  label.check { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 0.92rem; cursor: pointer; }
+  button { font-family: inherit; cursor: pointer; border: none; border-radius: 8px; font-size: 0.95rem; transition: transform 0.08s ease, opacity 0.2s, background 0.15s; }
+  button:active { transform: scale(0.97); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .btn-primary { background: var(--primary); color: white; padding: 12px 20px; width: 100%; font-weight: bold; margin-top: 10px; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-secondary { background: #eceff3; color: var(--text); padding: 10px 16px; }
+  .mode-btn {
+    display: block; width: 100%; text-align: left; background: #f7f8fa;
+    border: 1.5px solid #dfe3e8; padding: 14px 16px; border-radius: 10px;
+    margin-bottom: 10px; font-size: 0.95rem;
+  }
+  .mode-btn:hover { border-color: var(--primary); background: #eef3fa; }
+  .mode-btn .mode-title { font-weight: bold; color: var(--primary-dark); display: block; margin-bottom: 2px; }
+  .mode-btn .mode-desc { font-size: 0.8rem; color: var(--muted); }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .row input[type=number] { width: 70px; padding: 6px 8px; border-radius: 6px; border: 1px solid #ccc; }
+  .progress-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.8rem; color: var(--muted); flex-wrap: wrap; gap: 4px; }
+  .progress-bar { background: #e2e6ec; border-radius: 6px; height: 8px; overflow: hidden; margin-bottom: 18px; }
+  .progress-fill { background: var(--primary); height: 100%; transition: width 0.25s ease; }
+  .tag-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .tag { display: inline-block; background: #eaf1fb; color: var(--primary-dark); font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: bold; }
+  .star-btn { background: none; font-size: 1.3rem; padding: 0 4px; color: #ccc; }
+  .star-btn.on { color: var(--accent); }
+  .question-text { font-size: 1.08rem; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn { text-align: left; background: #f7f8fa; border: 1.5px solid #dfe3e8; padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; }
+  .option-btn:hover { border-color: var(--primary); }
+  .option-btn.correct { background: #e6f6ea; border-color: var(--correct); color: var(--correct); font-weight: bold; }
+  .option-btn.wrong { background: #fbe9e7; border-color: var(--wrong); color: var(--wrong); font-weight: bold; }
+  .answer-box { background: #f7f8fa; border-left: 4px solid var(--accent); padding: 14px 16px; border-radius: 8px; margin-top: 8px; font-size: 0.98rem; line-height: 1.6; white-space: pre-wrap; }
+  .self-grade { display: flex; gap: 10px; margin-top: 16px; }
+  .self-grade button { flex: 1; padding: 12px; font-weight: bold; }
+  .btn-correct { background: #e6f6ea; color: var(--correct); border: 1.5px solid var(--correct); }
+  .btn-wrong { background: #fbe9e7; color: var(--wrong); border: 1.5px solid var(--wrong); }
+  .btn-correct.selected { background: var(--correct); color: white; }
+  .btn-wrong.selected { background: var(--wrong); color: white; }
+  .nav-row { display: flex; justify-content: space-between; margin-top: 18px; gap: 10px; }
+  .hidden { display: none !important; }
+  .result-score { text-align: center; font-size: 2.4rem; font-weight: bold; color: var(--primary-dark); margin: 10px 0 4px; }
+  .result-sub { text-align: center; color: var(--muted); margin-bottom: 6px; }
+  .pass-banner { text-align: center; font-weight: bold; padding: 10px; border-radius: 8px; margin: 10px 0 18px; }
+  .pass-banner.pass { background: #e6f6ea; color: var(--correct); }
+  .pass-banner.fail { background: #fbe9e7; color: var(--wrong); }
+  .missed-item { padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+  .missed-item:last-child { border-bottom: none; }
+  .missed-q { font-weight: bold; margin-bottom: 4px; }
+  .missed-a { color: var(--muted); }
+  .back-link { color: var(--primary); font-size: 0.85rem; cursor: pointer; margin-bottom: 8px; display: inline-block; }
+  .stat-grid { display: flex; gap: 10px; margin-bottom: 14px; }
+  .stat-box { flex: 1; background: #f7f8fa; border-radius: 10px; padding: 12px; text-align: center; }
+  .stat-box .num { font-size: 1.5rem; font-weight: bold; color: var(--primary-dark); }
+  .stat-box .lbl { font-size: 0.72rem; color: var(--muted); }
+  .cat-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; border-bottom: 1px solid #f0f0f0; }
+  .weak-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; gap: 10px; }
+  .weak-item .qtext { flex: 1; }
+  .weak-item .acc { color: var(--wrong); font-weight: bold; white-space: nowrap; }
+  .flash-card { min-height: 140px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; border: 1.5px dashed #ccd3db; border-radius: 12px; margin-bottom: 16px; cursor: pointer; }
+  .timer { font-variant-numeric: tabular-nums; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 100; }
+  .modal-box { background: white; border-radius: 12px; padding: 22px; max-width: 380px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+  .modal-message { font-size: 0.95rem; line-height: 1.6; margin-bottom: 18px; white-space: pre-wrap; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-actions button { padding: 10px 18px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>イベント業務管理士 学習アプリ</h1>
+  <div class="subtitle">第1章・第2章 対応(随時追加中)</div>
+
+  <!-- ホーム画面 -->
+  <div class="card" id="homeScreen">
+    <div class="section-title">出題フィルタ(全モード共通)</div>
+    <label class="check"><input type="checkbox" class="cat-check" value="short" checked> 一問一答・穴埋め問題</label>
+    <label class="check"><input type="checkbox" class="cat-check" value="tf" checked> 〇×問題</label>
+    <label class="check"><input type="checkbox" class="cat-check" value="mc" checked> 選択式(4択)問題</label>
+    <div class="section-title">対象の章</div>
+    <div id="chapterChecks"></div>
+
+    <div class="section-title">モードを選ぶ</div>
+    <button class="mode-btn" id="modeNormal">
+      <span class="mode-title">📝 通常クイズ</span>
+      <span class="mode-desc">全問(選んだ範囲)を順番 or シャッフルで出題。じっくり練習用。</span>
+    </button>
+    <button class="mode-btn" id="modeWeak">
+      <span class="mode-title">🎯 苦手優先クイズ</span>
+      <span class="mode-desc">よく間違える問題・まだ解いていない問題を優先的に出題。</span>
+    </button>
+    <button class="mode-btn" id="modeExam">
+      <span class="mode-title">⏱ 模擬試験モード</span>
+      <span class="mode-desc">件数と合格ラインを決めてタイマー付きで本番形式の練習。</span>
+    </button>
+    <button class="mode-btn" id="modeFlash">
+      <span class="mode-title">🗂 暗記カードモード</span>
+      <span class="mode-desc">採点なし。答えをどんどん確認しながら覚える。</span>
+    </button>
+    <button class="mode-btn" id="modeStats">
+      <span class="mode-title">📊 学習状況を見る</span>
+      <span class="mode-desc">正答率・苦手問題ランキング・ブックマーク一覧を確認。</span>
+    </button>
+  </div>
+
+  <!-- 模擬試験の設定 -->
+  <div class="card hidden" id="examSetupScreen">
+    <span class="back-link" id="examSetupBack">← 戻る</span>
+    <div class="section-title">模擬試験の設定</div>
+    <div class="row">
+      <span>出題数</span>
+      <input type="number" id="examCount" value="20" min="5" max="200">
+      <span>問</span>
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <span>合格ライン</span>
+      <input type="number" id="examPass" value="70" min="1" max="100">
+      <span>%</span>
+    </div>
+    <button class="btn-primary" id="examStartBtn">試験を開始する</button>
+  </div>
+
+  <!-- クイズ画面(通常/苦手優先/模擬試験 共用) -->
+  <div class="card hidden" id="quizScreen">
+    <div class="progress-wrap">
+      <span id="progressText">問題 1 / 36</span>
+      <span class="timer" id="timerText"></span>
+      <span id="scoreText">正解 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+    <div class="tag-row">
+      <span class="tag" id="qTag">一問一答</span>
+      <button class="star-btn" id="starBtn">★</button>
+    </div>
+    <div class="question-text" id="qText"></div>
+
+    <div id="mcArea" class="options hidden"></div>
+
+    <div id="shortArea" class="hidden">
+      <button class="btn-secondary" id="showAnswerBtn">答えを表示する</button>
+      <div id="answerBox" class="answer-box hidden"></div>
+      <div id="selfGrade" class="self-grade hidden">
+        <button class="btn-correct" id="markCorrect">✓ 正解できた</button>
+        <button class="btn-wrong" id="markWrong">✗ 間違えた</button>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-secondary" id="quitBtn">中断する</button>
+      <button class="btn-primary" id="nextBtn" style="width:auto; margin-top:0;" disabled>次の問題へ</button>
+    </div>
+  </div>
+
+  <!-- 暗記カード画面 -->
+  <div class="card hidden" id="flashScreen">
+    <div class="progress-wrap">
+      <span id="flashProgress">カード 1 / 36</span>
+      <button class="star-btn" id="flashStarBtn">★</button>
+    </div>
+    <div class="tag" id="flashTag" style="margin-bottom:12px;"></div>
+    <div class="flash-card" id="flashCard"></div>
+    <div class="nav-row">
+      <button class="btn-secondary" id="flashQuit">中断する</button>
+      <div class="row">
+        <button class="btn-secondary" id="flashPrev">← 前へ</button>
+        <button class="btn-primary" id="flashNext" style="width:auto; margin-top:0;">次へ →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 結果画面 -->
+  <div class="card hidden" id="resultScreen">
+    <div class="result-score" id="resultScore">0 / 0</div>
+    <div class="result-sub" id="resultSub"></div>
+    <div id="passBanner" class="pass-banner hidden"></div>
+    <div id="missedList"></div>
+    <button class="btn-primary" id="restartBtn">ホームに戻る</button>
+  </div>
+
+  <!-- 統計画面 -->
+  <div class="card hidden" id="statsScreen">
+    <span class="back-link" id="statsBack">← ホームに戻る</span>
+    <div class="section-title">全体成績</div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="num" id="statTotalSeen">0</div><div class="lbl">解答した問題数(延べ)</div></div>
+      <div class="stat-box"><div class="num" id="statAccuracy">-</div><div class="lbl">全体正答率</div></div>
+      <div class="stat-box"><div class="num" id="statBookmarks">0</div><div class="lbl">ブックマーク数</div></div>
+    </div>
+    <div class="section-title">カテゴリ別正答率</div>
+    <div id="catStats"></div>
+    <div class="section-title">苦手問題ランキング(正答率が低い順)</div>
+    <div id="weakList"></div>
+    <div class="section-title">ブックマークした問題</div>
+    <div id="bookmarkList"></div>
+    <button class="btn-secondary" id="resetStatsBtn" style="width:100%; margin-top:16px;">学習記録をリセットする</button>
+  </div>
+
+  <!-- 汎用モーダル -->
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal-box">
+      <div class="modal-message" id="modalMessage"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="modalCancel">キャンセル</button>
+        <button class="btn-primary" id="modalOk" style="width:auto; margin-top:0;">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CHAPTERS = [
+  {id:'ch1', name:'第1章 イベント概論'},
+  {id:'ch2', name:'第2章 イベントの企画'}
+];
+
+const QUESTIONS = [
+  {id:'ch1-s01', chapter:'ch1', cat:'short', q:'イベントを主催者別に分類すると、「行政イベント」「産業イベント」「市民イベント」ともう1つは何か。', a:'私的イベント'},
+  {id:'ch1-s02', chapter:'ch1', cat:'short', q:'イベントの目的別分類のうち、地域社会への一体感や愛着、郷土意識、相互扶助意識の醸成を目的とするイベントを何というか。', a:'ソーシャルキャピタル(社会関係資本)形成イベント'},
+  {id:'ch1-s03', chapter:'ch1', cat:'short', q:'イベントを意味する外来語のうち、見本市・展示会を指す言葉を3つ挙げよ。', a:'エキシビション(exhibition)、ショー(show)、トレードショー(trade show)、フェア(fair)、トレードフェア(trade fair)のうち3つ'},
+  {id:'ch1-s04', chapter:'ch1', cat:'short', q:'サステナビリティ(持続可能性)の実現に関わる3つの構成要素は、「環境責任」「経済活動」ともう1つは何か。', a:'社会進歩'},
+  {id:'ch1-s05', chapter:'ch1', cat:'short', q:'世界的な環境問題への関心の高まりを背景とした、初めてのイベント国際規格の名称を答えよ(2012年発行)。', a:'ISO20121'},
+  {id:'ch1-s06', chapter:'ch1', cat:'short', q:'「レガシー」の日本語での基本的な意味を答えよ。', a:'遺産、先人が残したもの'},
+  {id:'ch1-s07', chapter:'ch1', cat:'short', q:'レガシーキューブは3つの軸の組み合わせで構成される。「有形と無形」「計画的と偶発的」ともう1つの軸は何か。', a:'ポジティブとネガティブ'},
+  {id:'ch1-s08', chapter:'ch1', cat:'short', q:'1976年、オイルショックのあおりを受けて10億ドルの巨額赤字となり、以後30年間カナダ国民を苦しめたオリンピックはどこの大会か。', a:'モントリオールオリンピック'},
+  {id:'ch1-s09', chapter:'ch1', cat:'short', q:'柳田国男が提示した、非日常を意味する概念を何というか。また、日常を意味する概念は何か。', a:'ハレ(非日常)、ケ(日常)'},
+  {id:'ch1-s10', chapter:'ch1', cat:'short', q:'「ケ→ケガレ→ハレ→ケ」という循環論において、「ケガレ」とはどのような状態を指すか、簡潔に説明せよ。', a:'日常であるケのエネルギーが枯れること'},
+  {id:'ch1-s11', chapter:'ch1', cat:'short', q:'1851年、世界初の国際博覧会として開催された博覧会の名称と、そのシンボルとなった建築物の名称を答えよ。', a:'ロンドン万国博覧会、クリスタルパレス(水晶宮)'},
+  {id:'ch1-s12', chapter:'ch1', cat:'short', q:'日本で最初に組織的にスポーツイベントボランティアが募集されたとされる、1985年開催の大会は何か。', a:'ユニバーシアード神戸大会'},
+  {id:'ch1-s13', chapter:'ch1', cat:'short', q:'イベントの構成要素における「6W2H」のうち、「Whom」は何を意味するか。', a:'告知対象者、来場者、観客(だれに)'},
+  {id:'ch1-s14', chapter:'ch1', cat:'short', q:'イベントの5つの必須要件を全て答えよ。', a:'非日常性、目的・理由の存在、場の創出、コミュニケーション表現・行為、計画性'},
+  {id:'ch1-s15', chapter:'ch1', cat:'short', q:'イベントの構造的特性である「一過性」「仮設性」「複雑性」ともう1つは何か。', a:'自己実現性'},
+  {id:'ch1-s16', chapter:'ch1', cat:'short', q:'イベントの行・催事プログラムの5つの基本形式を全て答えよ。', a:'演技・競技形式、展示形式、会議・集会形式、式典形式、宴会形式'},
+  {id:'ch1-s17', chapter:'ch1', cat:'short', q:'イベントのコミュニケーション・メディア機能のうち、複数のメディアと演技・競技・展示・会議・集会・式典・宴会など複数の表現形式を駆使した機能を何というか。', a:'複合コミュニケーション・メディア機能'},
+  {id:'ch1-s18', chapter:'ch1', cat:'short', q:'イベントの経済波及効果のうち、直接効果が誘発する生産(増産)のための消費のことを何というか。', a:'一次波及効果'},
+  {id:'ch1-s19', chapter:'ch1', cat:'short', q:'見本市・展示会の来場者別分類のうち、特定の招待客を対象とするものを何というか。', a:'クローズドタイプ'},
+  {id:'ch1-s20', chapter:'ch1', cat:'short', q:'会議・集会系イベントにおいて、主催者の後方支援業務を専門に行う専門家・専門会社の略称(アルファベット3文字)を答えよ。また、その正式名称(英語)も答えよ。', a:'PCO、Professional Congress Organizer'},
+  {id:'ch1-s21', chapter:'ch1', cat:'short', q:'PCOは米国では何と呼ばれているか。', a:'ミーティング・プランナー'},
+  {id:'ch1-s22', chapter:'ch1', cat:'short', q:'大規模イベントの4種類のマーケットのうち、テレビ放映権料や中継映像の有料配信などの市場を何というか。', a:'メディア・スポーツマーケット'},
+  {id:'ch1-s23', chapter:'ch1', cat:'short', q:'工程表の2種類の方式を答えよ。', a:'バーチャート方式、ネットワーク方式'},
+  {id:'ch1-s24', chapter:'ch1', cat:'short', q:'ネットワーク方式の工程表において、経路上のいずれかの作業日数を短縮すれば全体の工事スケジュールが短縮できる、最も所要日数が多い経路のことを何というか。', a:'クリティカルパス(最長作業経路)'},
+  {id:'ch1-s25', chapter:'ch1', cat:'short', q:'イベントの4大管理を全て答えよ。', a:'品質管理、工程管理、予算管理、安全管理'},
+
+  {id:'ch1-t01', chapter:'ch1', cat:'tf', q:'イベントの分類は便宜的なものであり、主催者も目的も形態も、多くは複合的である。', a:'○'},
+  {id:'ch1-t02', chapter:'ch1', cat:'tf', q:'私的イベントの効果については、行政イベント・産業イベント・市民イベントと同様に本書で詳しく言及されている。', a:'×(私的イベントの効果については言及しないとされている)'},
+  {id:'ch1-t03', chapter:'ch1', cat:'tf', q:'イベントの構造的特性における「複雑性」とは、状況や条件が異なるなか、そのつど多くの組織の協働によってつくられることを指す。', a:'○'},
+  {id:'ch1-t04', chapter:'ch1', cat:'tf', q:'会議・集会系イベントの人的構造の特性として、来場者(観客)が多数存在することが挙げられる。', a:'×(会議・集会系イベントには来場者〈観客〉はおらず、いるのは基本的に参加者のみ)'},
+  {id:'ch1-t05', chapter:'ch1', cat:'tf', q:'見本市・展示会は、主催者・参加者(出展企業・団体)・来場者の3者から人的構造が成り立っている。', a:'○'},
+  {id:'ch1-t06', chapter:'ch1', cat:'tf', q:'イベントの品質は「企画品質」「制作品質」「運営品質」の3つに分けて考える必要がある。', a:'○'},
+  {id:'ch1-t07', chapter:'ch1', cat:'tf', q:'「ねらいの品質」とは、制作によって実現した結果としての品質評価のことである。', a:'×(これは「できばえの品質」の説明。「ねらいの品質」は企画・計画によって「設定する品質標準」)'},
+
+  {id:'ch1-m01', chapter:'ch1', cat:'mc', q:'イベントの目的別分類に含まれないものはどれか。', options:['教育・啓発・普及イベント','広報・PR・販促イベント','見本市・展示会系イベント','経済・産業振興イベント'], correct:2},
+  {id:'ch1-m02', chapter:'ch1', cat:'mc', q:'JACE(日本イベント産業振興協会)が発表している、2017年のイベント産業の消費規模推計のうち、全カテゴリー合計消費規模はいくらか。', options:['2兆8,193億円','16兆6,490億円','56,828億円','23,785億円'], correct:1},
+  {id:'ch1-m03', chapter:'ch1', cat:'mc', q:'イベントの人的構成要素として正しくないものはどれか。', options:['主催者','参加者','来場者','実行委員長'], correct:3},
+  {id:'ch1-m04', chapter:'ch1', cat:'mc', q:'「イベントとは、何らかの目的を達成するための手段として行う行・催事である」という定義は、どのような視点からの定義か。', options:['概念的な定義','構造的な定義','実務的な定義','形態的な定義'], correct:0},
+
+  {id:'ch2-s01', chapter:'ch2', cat:'short', q:'イベントの場合の「企画」の定義を答えよ。', a:'新たにモノやコトを考え出し、その基本的な構造や仕組みを明らかにしたもの'},
+  {id:'ch2-s02', chapter:'ch2', cat:'short', q:'「計画」の定義を答えよ。', a:'企画を実現するための手段や方法を、プロセス(手順・段取り)で示したもの'},
+  {id:'ch2-s03', chapter:'ch2', cat:'short', q:'イベントの企画立案にあたっての3つの制約を答えよ。', a:'コンプライアンスの徹底、6W2Hの面での制約、プロジェクトの制約'},
+  {id:'ch2-s04', chapter:'ch2', cat:'short', q:'アイデア発想のプロセスの5段階を順に答えよ。', a:'第1段階:資料の収集、第2段階:資料の分析・加工、第3段階:無意識下・潜在期、第4段階:アイデアの閃き・啓示期、第5段階:仕上げ・証明期'},
+  {id:'ch2-s05', chapter:'ch2', cat:'short', q:'米国のジェームス・W・ヤングによる、アイデアについての有名な定義を答えよ。', a:'アイデアとは、既存の要素の新しい組み合わせである'},
+  {id:'ch2-s06', chapter:'ch2', cat:'short', q:'属性変更によるアイデア創出のチェックリストとして、広告表現制作や新製品開発の発想に使われる手法を何というか。', a:'オズボーンのチェックリスト'},
+  {id:'ch2-s07', chapter:'ch2', cat:'short', q:'カード法のうち、開発者である川喜田二郎のイニシャルにちなんで名付けられた手法を何というか。', a:'KJ法'},
+  {id:'ch2-s08', chapter:'ch2', cat:'short', q:'ブレーンストーミングの4大ルールを全て答えよ。', a:'自由奔放に意見を出す、他人の意見を批判しない、他人のアイデアへの便乗・改善の奨励、アイデア素材の量を重視する'},
+  {id:'ch2-s09', chapter:'ch2', cat:'short', q:'ブレーンストーミングにおいて、積極的に発言を促す一方、会議の方向性の脱線を防ぐ役割を何というか。', a:'ファシリテーター'},
+  {id:'ch2-s10', chapter:'ch2', cat:'short', q:'SWOT分析の4つの構成要素を答えよ。', a:'強み(Strength)、弱み(Weakness)、機会(Opportunity)、脅威(Threat)'},
+  {id:'ch2-s11', chapter:'ch2', cat:'short', q:'企業や商品を、市場や消費者のイメージ空間に、競争相手を考え消費者ニーズに基づいて位置づける分析・確認・発想の手法を何というか。', a:'ポジショニング分析(ポジションマップ分析)'},
+  {id:'ch2-s12', chapter:'ch2', cat:'short', q:'一つの仕事を業務・作業に細分化し、それぞれと全体との関係を明確にして計画全体を体系的に組み立てる考え方の略称(アルファベット3文字)を答えよ。', a:'WBS(Work Breakdown Structure)'},
+  {id:'ch2-s13', chapter:'ch2', cat:'short', q:'イベント計画の策定順序を答えよ。', a:'1.業務・作業 → 2.人材・組織 → 3.日程 → 4.予算'},
+  {id:'ch2-s14', chapter:'ch2', cat:'short', q:'イベントの企画・計画の3段階を答えよ。', a:'基本構想、基本計画、実施計画'},
+  {id:'ch2-s15', chapter:'ch2', cat:'short', q:'基本構想・基本計画・実施計画は、それぞれ何づくりと呼ばれるか。', a:'基本構想=「仕掛け」づくり、基本計画=「仕組み」づくり、実施計画=「仕切り」づくり'},
+  {id:'ch2-s16', chapter:'ch2', cat:'short', q:'企画書の策定において、クライアントの信頼を獲得するための3要素を答えよ。', a:'理解力、提案力、実行力'},
+  {id:'ch2-s17', chapter:'ch2', cat:'short', q:'優れた企画立案・企画書策定に必要な5つの基本業務を答えよ。', a:'企画背景の把握、成果目標の設定、コアアイデアの案出、プログラムの構成、フィジビリティーチェック'},
+  {id:'ch2-s18', chapter:'ch2', cat:'short', q:'企画案のフィジビリティーチェックの4つの項目を答えよ。', a:'技術的フィジビリティー、制作日程的フィジビリティー、予算的フィジビリティー、コンプライアンス・フィジビリティー'},
+  {id:'ch2-s19', chapter:'ch2', cat:'short', q:'プレゼンの業務ステップを順に答えよ。', a:'企画立案・企画書策定 → プレゼン準備 → リハーサル → プレゼン実施'},
+  {id:'ch2-s20', chapter:'ch2', cat:'short', q:'結論→結論の論拠→結論の展開・具体案の順に展開する論述方法を何というか。', a:'ピラミッド型論述'},
+  {id:'ch2-s21', chapter:'ch2', cat:'short', q:'イベントの参加者・来場者を集めるための3つの活動を答えよ。', a:'告知、集客、動員'},
+  {id:'ch2-s22', chapter:'ch2', cat:'short', q:'告知・集客スケジュールにおける4つの期間を全て答えよ。', a:'初期告知期、中期告知期、後期集客促進期、直前盛り上げ期'},
+  {id:'ch2-s23', chapter:'ch2', cat:'short', q:'イベントのシンボルマークやスローガン、キャラクター等を、全てのツール・メディアを通じて統一的に展開していくことの略称と正式名称を答えよ。', a:'IMC(Integrated Marketing Communication:統合マーケティング・コミュニケーション)'},
+  {id:'ch2-s24', chapter:'ch2', cat:'short', q:'新聞・雑誌・ラジオ・テレビの4媒体をまとめて何というか。', a:'マスコミ4媒体'},
+  {id:'ch2-s25', chapter:'ch2', cat:'short', q:'広告・プロモーション活動における予算決定の考え方として紹介されている4種類の方法を全て答えよ。', a:'支出可能額法、売上高比率法、競争者対抗法、目標基準法'},
+  {id:'ch2-s26', chapter:'ch2', cat:'short', q:'「Unique Selling Proposition」の略称と意味を答えよ。', a:'USP(他にはない独自の売込み効果をもった提案)'},
+  {id:'ch2-s27', chapter:'ch2', cat:'short', q:'マスメディア側の自主的な判断で、企業・団体の情報がニュースとして無料で掲載・放送されることを何というか。', a:'パブリシティ'},
+
+  {id:'ch2-t01', chapter:'ch2', cat:'tf', q:'企画は、アイデアだけがあれば、構造や仕組みまで明確にしなくても成立する。', a:'×(アイデアだけでは企画とならず、構造や仕組みまで明確にしてはじめて企画になる)'},
+  {id:'ch2-t02', chapter:'ch2', cat:'tf', q:'ブレーンストーミングでは、その場で即座に評価しないという「判断の留保」が基本的な考え方である。', a:'○'},
+  {id:'ch2-t03', chapter:'ch2', cat:'tf', q:'SWOT分析における「強み」「弱み」は外部要因であり、「機会」「脅威」は内部要因である。', a:'×(強み・弱みは内部要因、機会・脅威は外部要因である)'},
+  {id:'ch2-t04', chapter:'ch2', cat:'tf', q:'イベント計画の基本構造は、時間と費用と品質と空間の4つで構成されている。', a:'○'},
+  {id:'ch2-t05', chapter:'ch2', cat:'tf', q:'実施計画は、計画業務というよりは制作業務の一部である。', a:'○'},
+  {id:'ch2-t06', chapter:'ch2', cat:'tf', q:'プレゼンは一方的な説明の場であり、コミュニケーションの場ではないことを常に意識すべきである。', a:'×(プレゼンは一方的な説明の場ではなく、コミュニケーションの場であることを忘れてはならない)'},
+  {id:'ch2-t07', chapter:'ch2', cat:'tf', q:'前売り入場券の割引率は、通常、会期が近づくにつれて高く設定される。', a:'×(会期前の早い段階では高く、会期が近づくにつれて低く設定されるのが通常)'},
+  {id:'ch2-t08', chapter:'ch2', cat:'tf', q:'広報・PR活動は、広告活動と異なり、完全にはコントロールできないコミュニケーション活動である。', a:'○'},
+
+  {id:'ch2-m01', chapter:'ch2', cat:'mc', q:'イベントの企画立案ステップの順序として正しいものはどれか。', options:['目的・ゴールの明確化→情報・データの収集・分析→コアアイデアの創出→企画の論理構成','コアアイデアの創出→目的・ゴールの明確化→企画の論理構成→情報・データの収集・分析','情報・データの収集・分析→企画の論理構成→目的・ゴールの明確化→コアアイデアの創出','企画の論理構成→コアアイデアの創出→情報・データの収集・分析→目的・ゴールの明確化'], correct:0},
+  {id:'ch2-m02', chapter:'ch2', cat:'mc', q:'オズボーンのチェックリストの項目として紹介されていないものはどれか。', options:['他に使い道はないか','応用や真似はできないか','収支を計算したら','組み合わせたら'], correct:2},
+  {id:'ch2-m03', chapter:'ch2', cat:'mc', q:'プレゼンテーションにおける「起承転結」のうち、「転」にあたる内容はどれか。', options:['挨拶・予告・つかみ','企画背景・考え方・コンセプト&テーマ','会場・プログラム・運営の具体案','実現性・まとめ'], correct:2},
+  {id:'ch2-m04', chapter:'ch2', cat:'mc', q:'「企画書は基本構想と基本計画の合体である」とされるのは、どのような場合の企画書か。', options:['定期的に開催するイベントや小規模なイベントの場合','大規模イベントかつ長期間かけて企画する場合のみ','博覧会など特別大型イベントに限る','実施計画を策定しない場合に限る'], correct:0},
+];
+
+const CAT_LABELS = {short:'一問一答・穴埋め', tf:'〇×問題', mc:'選択式(4択)'};
+const STORAGE_KEY = 'ievent_quiz_stats_v1';
+
+function loadStats() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return {perQuestion: {}};
+}
+function saveStats() { localStorage.setItem(STORAGE_KEY, JSON.stringify(stats)); }
+function getQStat(id) {
+  if (!stats.perQuestion[id]) stats.perQuestion[id] = {seen:0, correct:0, wrong:0, bookmarked:false};
+  return stats.perQuestion[id];
+}
+function recordResult(id, isCorrect) {
+  const s = getQStat(id);
+  s.seen++;
+  if (isCorrect) s.correct++; else s.wrong++;
+  saveStats();
+}
+function toggleBookmark(id) {
+  const s = getQStat(id);
+  s.bookmarked = !s.bookmarked;
+  saveStats();
+  return s.bookmarked;
+}
+
+let stats = loadStats();
+
+// ---- 汎用モーダル(confirm/alertの代替) ----
+function showAlert(message) {
+  document.getElementById('modalMessage').textContent = message;
+  const overlay = document.getElementById('modalOverlay');
+  const okBtn = document.getElementById('modalOk');
+  const cancelBtn = document.getElementById('modalCancel');
+  cancelBtn.classList.add('hidden');
+  overlay.classList.remove('hidden');
+  function cleanup() { okBtn.removeEventListener('click', okHandler); cancelBtn.classList.remove('hidden'); overlay.classList.add('hidden'); }
+  function okHandler() { cleanup(); }
+  okBtn.addEventListener('click', okHandler);
+}
+function showConfirm(message, onOk) {
+  document.getElementById('modalMessage').textContent = message;
+  const overlay = document.getElementById('modalOverlay');
+  const okBtn = document.getElementById('modalOk');
+  const cancelBtn = document.getElementById('modalCancel');
+  overlay.classList.remove('hidden');
+  function cleanup() { okBtn.removeEventListener('click', okHandler); cancelBtn.removeEventListener('click', cancelHandler); overlay.classList.add('hidden'); }
+  function okHandler() { cleanup(); onOk(); }
+  function cancelHandler() { cleanup(); }
+  okBtn.addEventListener('click', okHandler);
+  cancelBtn.addEventListener('click', cancelHandler);
+}
+
+// ---- 画面切り替え ----
+const screens = ['homeScreen','examSetupScreen','quizScreen','flashScreen','resultScreen','statsScreen'];
+function showScreen(id) {
+  screens.forEach(s => document.getElementById(s).classList.toggle('hidden', s !== id));
+}
+
+// 章チェックボックス生成
+const chapterChecksEl = document.getElementById('chapterChecks');
+CHAPTERS.forEach(ch => {
+  const label = document.createElement('label');
+  label.className = 'check';
+  label.innerHTML = `<input type="checkbox" class="chapter-check" value="${ch.id}" checked> ${ch.name}`;
+  chapterChecksEl.appendChild(label);
+});
+
+function getFilteredPool() {
+  const cats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
+  const chaps = Array.from(document.querySelectorAll('.chapter-check:checked')).map(c => c.value);
+  return QUESTIONS.filter(q => cats.includes(q.cat) && chaps.includes(q.chapter));
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// 重み付き抽出(Efraimidis-Spirakisアルゴリズム): 苦手・未回答ほど選ばれやすくする
+function weightFor(qid) {
+  const s = stats.perQuestion[qid];
+  if (!s || s.seen === 0) return 1.4;
+  const wrongRate = s.wrong / s.seen;
+  return 0.3 + wrongRate * 2.2;
+}
+function weightedSample(pool, n) {
+  const keyed = pool.map(q => ({q, key: Math.pow(Math.random(), 1 / weightFor(q.id))}));
+  keyed.sort((a, b) => b.key - a.key);
+  return keyed.slice(0, Math.min(n, keyed.length)).map(x => x.q);
+}
+
+// ---- クイズ共通ロジック ----
+let activeQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let missed = [];
+let currentGrade = null;
+let quizMode = 'normal'; // normal | weak | exam
+let examPassPct = 70;
+let timerStart = null;
+let timerInterval = null;
+
+function startTimer() {
+  timerStart = Date.now();
+  document.getElementById('timerText').classList.remove('hidden');
+  timerInterval = setInterval(updateTimer, 1000);
+  updateTimer();
+}
+function stopTimer() { clearInterval(timerInterval); }
+function updateTimer() {
+  const sec = Math.floor((Date.now() - timerStart) / 1000);
+  const m = String(Math.floor(sec / 60)).padStart(2, '0');
+  const s = String(sec % 60).padStart(2, '0');
+  document.getElementById('timerText').textContent = `⏱ ${m}:${s}`;
+}
+
+function launchQuiz(mode) {
+  const pool = getFilteredPool();
+  if (pool.length === 0) { showAlert('出題対象がありません。フィルタを見直してください。'); return; }
+  quizMode = mode;
+  if (mode === 'normal') {
+    activeQuestions = shuffle(pool);
+  } else if (mode === 'weak') {
+    activeQuestions = weightedSample(pool, Math.min(20, pool.length));
+  } else if (mode === 'exam') {
+    const count = Math.max(1, parseInt(document.getElementById('examCount').value) || 20);
+    examPassPct = Math.max(1, Math.min(100, parseInt(document.getElementById('examPass').value) || 70));
+    activeQuestions = shuffle(pool).slice(0, Math.min(count, pool.length));
+  }
+  currentIndex = 0; score = 0; missed = [];
+  showScreen('quizScreen');
+  startTimer();
+  renderQuestion();
+}
+
+document.getElementById('modeNormal').addEventListener('click', () => launchQuiz('normal'));
+document.getElementById('modeWeak').addEventListener('click', () => launchQuiz('weak'));
+document.getElementById('modeExam').addEventListener('click', () => showScreen('examSetupScreen'));
+document.getElementById('examSetupBack').addEventListener('click', () => showScreen('homeScreen'));
+document.getElementById('examStartBtn').addEventListener('click', () => launchQuiz('exam'));
+document.getElementById('modeStats').addEventListener('click', renderStats);
+document.getElementById('statsBack').addEventListener('click', () => showScreen('homeScreen'));
+
+function renderQuestion() {
+  currentGrade = null;
+  const q = activeQuestions[currentIndex];
+  document.getElementById('progressText').textContent = `問題 ${currentIndex + 1} / ${activeQuestions.length}`;
+  document.getElementById('scoreText').textContent = `正解 ${score}`;
+  document.getElementById('progressFill').style.width = `${(currentIndex / activeQuestions.length) * 100}%`;
+  document.getElementById('qTag').textContent = CAT_LABELS[q.cat] + (quizMode === 'exam' ? '・模擬試験' : quizMode === 'weak' ? '・苦手優先' : '');
+  document.getElementById('qText').textContent = q.q;
+
+  const starBtn = document.getElementById('starBtn');
+  starBtn.classList.toggle('on', !!getQStat(q.id).bookmarked);
+  starBtn.onclick = () => starBtn.classList.toggle('on', toggleBookmark(q.id));
+
+  const mcArea = document.getElementById('mcArea');
+  const shortArea = document.getElementById('shortArea');
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('answerBox').classList.add('hidden');
+  document.getElementById('selfGrade').classList.add('hidden');
+  document.getElementById('showAnswerBtn').classList.remove('hidden');
+  document.getElementById('markCorrect').classList.remove('selected');
+  document.getElementById('markWrong').classList.remove('selected');
+
+  if (q.cat === 'mc') {
+    mcArea.classList.remove('hidden');
+    shortArea.classList.add('hidden');
+    mcArea.innerHTML = '';
+    q.options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.textContent = `${idx + 1}. ${opt}`;
+      btn.addEventListener('click', () => selectOption(idx));
+      mcArea.appendChild(btn);
+    });
+  } else {
+    mcArea.classList.add('hidden');
+    shortArea.classList.remove('hidden');
+  }
+}
+
+function selectOption(idx) {
+  const q = activeQuestions[currentIndex];
+  const allBtns = document.querySelectorAll('#mcArea .option-btn');
+  allBtns.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correct) b.classList.add('correct');
+    else if (i === idx) b.classList.add('wrong');
+  });
+  const isCorrect = idx === q.correct;
+  recordResult(q.id, isCorrect);
+  if (isCorrect) score++; else missed.push({q: q.q, a: q.options[q.correct]});
+  document.getElementById('scoreText').textContent = `正解 ${score}`;
+  document.getElementById('nextBtn').disabled = false;
+}
+
+document.getElementById('showAnswerBtn').addEventListener('click', () => {
+  const q = activeQuestions[currentIndex];
+  document.getElementById('answerBox').textContent = `答え: ${q.a}`;
+  document.getElementById('answerBox').classList.remove('hidden');
+  document.getElementById('selfGrade').classList.remove('hidden');
+  document.getElementById('showAnswerBtn').classList.add('hidden');
+});
+
+document.getElementById('markCorrect').addEventListener('click', () => selfGrade(true));
+document.getElementById('markWrong').addEventListener('click', () => selfGrade(false));
+function selfGrade(isCorrect) {
+  const q = activeQuestions[currentIndex];
+  if (currentGrade === null) {
+    recordResult(q.id, isCorrect);
+    if (isCorrect) score++; else missed.push({q: q.q, a: q.a});
+    document.getElementById('scoreText').textContent = `正解 ${score}`;
+  }
+  currentGrade = isCorrect;
+  document.getElementById('markCorrect').classList.toggle('selected', isCorrect);
+  document.getElementById('markWrong').classList.toggle('selected', !isCorrect);
+  document.getElementById('nextBtn').disabled = false;
+}
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+  currentIndex++;
+  if (currentIndex >= activeQuestions.length) { stopTimer(); showResult(); }
+  else renderQuestion();
+});
+document.getElementById('quitBtn').addEventListener('click', () => {
+  showConfirm('中断してホームに戻りますか？(この回の記録は保存済みです)', () => { stopTimer(); showScreen('homeScreen'); });
+});
+
+function showResult() {
+  showScreen('resultScreen');
+  document.getElementById('resultScore').textContent = `${score} / ${activeQuestions.length}`;
+  const pct = Math.round((score / activeQuestions.length) * 100);
+  document.getElementById('resultSub').textContent = `正答率 ${pct}%　所要時間 ${document.getElementById('timerText').textContent.replace('⏱ ','')}`;
+  const banner = document.getElementById('passBanner');
+  if (quizMode === 'exam') {
+    banner.classList.remove('hidden');
+    if (pct >= examPassPct) { banner.textContent = `合格ライン ${examPassPct}% 突破！合格です 🎉`; banner.className = 'pass-banner pass'; }
+    else { banner.textContent = `合格ライン ${examPassPct}% に届きませんでした(あと ${examPassPct - pct}%)`; banner.className = 'pass-banner fail'; }
+  } else {
+    banner.classList.add('hidden');
+  }
+  const missedList = document.getElementById('missedList');
+  missedList.innerHTML = '';
+  if (missed.length > 0) {
+    const header = document.createElement('div');
+    header.className = 'section-title';
+    header.textContent = '間違えた問題の復習';
+    missedList.appendChild(header);
+    missed.forEach(m => {
+      const div = document.createElement('div');
+      div.className = 'missed-item';
+      div.innerHTML = `<div class="missed-q">${m.q}</div><div class="missed-a">答え: ${m.a}</div>`;
+      missedList.appendChild(div);
+    });
+  }
+}
+document.getElementById('restartBtn').addEventListener('click', () => showScreen('homeScreen'));
+
+// ---- 暗記カードモード ----
+let flashPool = [];
+let flashIndex = 0;
+let flashFlipped = false;
+
+document.getElementById('modeFlash').addEventListener('click', () => {
+  const pool = getFilteredPool();
+  if (pool.length === 0) { showAlert('出題対象がありません。フィルタを見直してください。'); return; }
+  flashPool = shuffle(pool);
+  flashIndex = 0;
+  showScreen('flashScreen');
+  renderFlash();
+});
+
+function renderFlash() {
+  flashFlipped = false;
+  const q = flashPool[flashIndex];
+  document.getElementById('flashProgress').textContent = `カード ${flashIndex + 1} / ${flashPool.length}`;
+  document.getElementById('flashTag').textContent = CAT_LABELS[q.cat];
+  const starBtn = document.getElementById('flashStarBtn');
+  starBtn.classList.toggle('on', !!getQStat(q.id).bookmarked);
+  starBtn.onclick = () => starBtn.classList.toggle('on', toggleBookmark(q.id));
+  drawFlashFace();
+}
+function drawFlashFace() {
+  const q = flashPool[flashIndex];
+  const card = document.getElementById('flashCard');
+  if (!flashFlipped) {
+    let text = q.q;
+    if (q.cat === 'mc') text += '\n\n' + q.options.map((o,i) => `${i+1}. ${o}`).join('\n');
+    card.textContent = text;
+    card.style.whiteSpace = 'pre-wrap';
+  } else {
+    card.textContent = q.cat === 'mc' ? `正解: ${q.options[q.correct]}` : `答え: ${q.a}`;
+    card.style.whiteSpace = 'pre-wrap';
+  }
+}
+document.getElementById('flashCard').addEventListener('click', () => { flashFlipped = !flashFlipped; drawFlashFace(); });
+document.getElementById('flashNext').addEventListener('click', () => {
+  flashIndex = (flashIndex + 1) % flashPool.length;
+  renderFlash();
+});
+document.getElementById('flashPrev').addEventListener('click', () => {
+  flashIndex = (flashIndex - 1 + flashPool.length) % flashPool.length;
+  renderFlash();
+});
+document.getElementById('flashQuit').addEventListener('click', () => showScreen('homeScreen'));
+
+// ---- 統計画面 ----
+function renderStats() {
+  showScreen('statsScreen');
+  let totalSeen = 0, totalCorrect = 0, bookmarkCount = 0;
+  const catTotals = {};
+  Object.keys(CAT_LABELS).forEach(c => catTotals[c] = {seen:0, correct:0});
+
+  QUESTIONS.forEach(q => {
+    const s = stats.perQuestion[q.id];
+    if (!s) return;
+    totalSeen += s.seen;
+    totalCorrect += s.correct;
+    if (s.bookmarked) bookmarkCount++;
+    catTotals[q.cat].seen += s.seen;
+    catTotals[q.cat].correct += s.correct;
+  });
+
+  document.getElementById('statTotalSeen').textContent = totalSeen;
+  document.getElementById('statAccuracy').textContent = totalSeen > 0 ? Math.round((totalCorrect/totalSeen)*100) + '%' : '-';
+  document.getElementById('statBookmarks').textContent = bookmarkCount;
+
+  const catStatsEl = document.getElementById('catStats');
+  catStatsEl.innerHTML = '';
+  Object.keys(CAT_LABELS).forEach(c => {
+    const t = catTotals[c];
+    const acc = t.seen > 0 ? Math.round((t.correct/t.seen)*100) + '%' : '未実施';
+    const row = document.createElement('div');
+    row.className = 'cat-row';
+    row.innerHTML = `<span>${CAT_LABELS[c]}</span><span>${acc}${t.seen>0 ? ` (${t.correct}/${t.seen})` : ''}</span>`;
+    catStatsEl.appendChild(row);
+  });
+
+  const weakListEl = document.getElementById('weakList');
+  weakListEl.innerHTML = '';
+  const withStats = QUESTIONS
+    .map(q => ({q, s: stats.perQuestion[q.id]}))
+    .filter(x => x.s && x.s.seen > 0)
+    .map(x => ({...x, acc: x.s.correct / x.s.seen}))
+    .sort((a, b) => a.acc - b.acc)
+    .slice(0, 10);
+  if (withStats.length === 0) {
+    weakListEl.innerHTML = '<div style="color:var(--muted); font-size:0.88rem;">まだ解答記録がありません。クイズに挑戦してみましょう。</div>';
+  } else {
+    withStats.forEach(x => {
+      const div = document.createElement('div');
+      div.className = 'weak-item';
+      div.innerHTML = `<span class="qtext">${x.q.q}</span><span class="acc">${Math.round(x.acc*100)}% (${x.s.correct}/${x.s.seen})</span>`;
+      weakListEl.appendChild(div);
+    });
+  }
+
+  const bookmarkListEl = document.getElementById('bookmarkList');
+  bookmarkListEl.innerHTML = '';
+  const bookmarked = QUESTIONS.filter(q => stats.perQuestion[q.id] && stats.perQuestion[q.id].bookmarked);
+  if (bookmarked.length === 0) {
+    bookmarkListEl.innerHTML = '<div style="color:var(--muted); font-size:0.88rem;">ブックマークした問題はまだありません。</div>';
+  } else {
+    bookmarked.forEach(q => {
+      const div = document.createElement('div');
+      div.className = 'missed-item';
+      div.innerHTML = `<div class="missed-q">★ ${q.q}</div><div class="missed-a">答え: ${q.cat==='mc' ? q.options[q.correct] : q.a}</div>`;
+      bookmarkListEl.appendChild(div);
+    });
+  }
+}
+
+document.getElementById('resetStatsBtn').addEventListener('click', () => {
+  showConfirm('全ての学習記録(正答率・ブックマーク)を削除します。よろしいですか？', () => {
+    stats = {perQuestion: {}};
+    saveStats();
+    renderStats();
+  });
+});
+</script>
+</body>
+</html>
