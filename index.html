@@ -96,6 +96,11 @@
   .weak-item .qtext { flex: 1; }
   .weak-item .acc { color: var(--wrong); font-weight: bold; white-space: nowrap; }
   .flash-card { min-height: 140px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; border: 1.5px dashed #ccd3db; border-radius: 12px; margin-bottom: 16px; cursor: pointer; }
+  .set-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #eee; }
+  .set-item:last-child { border-bottom: none; }
+  .set-info .set-title { font-weight: bold; font-size: 0.92rem; }
+  .set-status { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .set-status.done { color: var(--correct); font-weight: bold; }
   .timer { font-variant-numeric: tabular-nums; }
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 100; }
   .modal-box { background: white; border-radius: 12px; padding: 22px; max-width: 380px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
@@ -127,6 +132,10 @@
       <span class="mode-title">🎯 苦手優先クイズ</span>
       <span class="mode-desc">よく間違える問題・まだ解いていない問題を優先的に出題。</span>
     </button>
+    <button class="mode-btn" id="modeSets">
+      <span class="mode-title">📚 10問チャレンジ</span>
+      <span class="mode-desc">全問を10問ずつのセットに分割。1回10問ずつ、進捗を保存しながら進められる。</span>
+    </button>
     <button class="mode-btn" id="modeExam">
       <span class="mode-title">⏱ 模擬試験モード</span>
       <span class="mode-desc">件数と合格ラインを決めてタイマー付きで本番形式の練習。</span>
@@ -145,6 +154,7 @@
   <div class="card hidden" id="examSetupScreen">
     <span class="back-link" id="examSetupBack">← 戻る</span>
     <div class="section-title">模擬試験の設定</div>
+    <button class="btn-secondary" id="examPresetBtn" style="width:100%; margin-bottom:14px;">📖 本試験形式にする(100問・120分)</button>
     <div class="row">
       <span>出題数</span>
       <input type="number" id="examCount" value="20" min="5" max="200">
@@ -155,6 +165,12 @@
       <input type="number" id="examPass" value="70" min="1" max="100">
       <span>%</span>
     </div>
+    <div class="row" style="margin-top:8px;">
+      <span>制限時間</span>
+      <input type="number" id="examTimeLimit" value="0" min="0" max="300">
+      <span>分(0=無制限)</span>
+    </div>
+    <div style="font-size:0.78rem; color:var(--muted); margin-top:6px;">※現在の収録問題数は全<span id="examTotalQCount">0</span>問です。出題数がそれを超える場合は収録分すべてが出題されます。</div>
     <button class="btn-primary" id="examStartBtn">試験を開始する</button>
   </div>
 
@@ -205,6 +221,17 @@
         <button class="btn-primary" id="flashNext" style="width:auto; margin-top:0;">次へ →</button>
       </div>
     </div>
+  </div>
+
+  <!-- 10問チャレンジ セット一覧 -->
+  <div class="card hidden" id="setsScreen">
+    <span class="back-link" id="setsBack">← ホームに戻る</span>
+    <div class="section-title">10問チャレンジ - 進捗</div>
+    <div class="progress-wrap">
+      <span id="setsOverallText">0 / 0 セット完了</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="setsOverallFill" style="width:0%"></div></div>
+    <div id="setsList"></div>
   </div>
 
   <!-- 結果画面 -->
@@ -391,7 +418,7 @@ function showConfirm(message, onOk) {
 }
 
 // ---- 画面切り替え ----
-const screens = ['homeScreen','examSetupScreen','quizScreen','flashScreen','resultScreen','statsScreen'];
+const screens = ['homeScreen','examSetupScreen','quizScreen','flashScreen','setsScreen','resultScreen','statsScreen'];
 function showScreen(id) {
   screens.forEach(s => document.getElementById(s).classList.toggle('hidden', s !== id));
 }
@@ -410,6 +437,57 @@ function getFilteredPool() {
   const chaps = Array.from(document.querySelectorAll('.chapter-check:checked')).map(c => c.value);
   return QUESTIONS.filter(q => cats.includes(q.cat) && chaps.includes(q.chapter));
 }
+
+document.getElementById('examTotalQCount').textContent = QUESTIONS.length;
+
+// ---- 10問チャレンジ(セット学習) ----
+function getSets() {
+  const pool = getFilteredPool();
+  const sets = [];
+  for (let i = 0; i < pool.length; i += 10) sets.push(pool.slice(i, i + 10));
+  return sets;
+}
+function setKeyFor(setQuestions) { return setQuestions.map(q => q.id).join(','); }
+
+function renderSetsScreen() {
+  showScreen('setsScreen');
+  const sets = getSets();
+  if (!stats.completedSets) stats.completedSets = {};
+  let doneCount = 0;
+  const listEl = document.getElementById('setsList');
+  listEl.innerHTML = '';
+  sets.forEach((setQ, idx) => {
+    const key = setKeyFor(setQ);
+    const rec = stats.completedSets[key];
+    if (rec) doneCount++;
+    const startNum = idx * 10 + 1;
+    const endNum = startNum + setQ.length - 1;
+    const row = document.createElement('div');
+    row.className = 'set-item';
+    const statusText = rec ? `完了(${rec.count}回挑戦・前回 ${rec.lastScore}/${setQ.length}問正解)` : '未実施';
+    row.innerHTML = `<div class="set-info"><div class="set-title">セット${idx + 1}(${startNum}〜${endNum}問目)</div><div class="set-status ${rec ? 'done' : ''}">${statusText}</div></div>`;
+    const btn = document.createElement('button');
+    btn.className = 'btn-secondary';
+    btn.textContent = rec ? 'もう一度' : '挑戦する';
+    btn.addEventListener('click', () => launchSet(setQ));
+    row.appendChild(btn);
+    listEl.appendChild(row);
+  });
+  document.getElementById('setsOverallText').textContent = `${doneCount} / ${sets.length} セット完了`;
+  document.getElementById('setsOverallFill').style.width = sets.length ? `${(doneCount / sets.length) * 100}%` : '0%';
+}
+
+function launchSet(setQ) {
+  quizMode = 'set';
+  activeQuestions = setQ;
+  currentIndex = 0; score = 0; missed = [];
+  showScreen('quizScreen');
+  startTimer(0);
+  renderQuestion();
+}
+
+document.getElementById('modeSets').addEventListener('click', renderSetsScreen);
+document.getElementById('setsBack').addEventListener('click', () => showScreen('homeScreen'));
 
 function shuffle(arr) {
   const a = arr.slice();
@@ -439,29 +517,63 @@ let currentIndex = 0;
 let score = 0;
 let missed = [];
 let currentGrade = null;
-let quizMode = 'normal'; // normal | weak | exam
+let quizMode = 'normal'; // normal | weak | exam | set
 let examPassPct = 70;
 let timerStart = null;
 let timerInterval = null;
+let timerLimitSec = 0;
 
-function startTimer() {
+function startTimer(limitSec) {
+  timerLimitSec = limitSec || 0;
   timerStart = Date.now();
-  document.getElementById('timerText').classList.remove('hidden');
+  const timerEl = document.getElementById('timerText');
+  timerEl.classList.remove('hidden');
+  timerEl.style.color = '';
   timerInterval = setInterval(updateTimer, 1000);
   updateTimer();
 }
 function stopTimer() { clearInterval(timerInterval); }
-function updateTimer() {
+function elapsedTimeText() {
   const sec = Math.floor((Date.now() - timerStart) / 1000);
   const m = String(Math.floor(sec / 60)).padStart(2, '0');
   const s = String(sec % 60).padStart(2, '0');
-  document.getElementById('timerText').textContent = `⏱ ${m}:${s}`;
+  return `${m}:${s}`;
 }
+function updateTimer() {
+  const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+  const timerEl = document.getElementById('timerText');
+  if (timerLimitSec > 0) {
+    const remain = timerLimitSec - elapsed;
+    if (remain <= 0) {
+      timerEl.textContent = '⏱ 残り 00:00';
+      finishByTimeout();
+      return;
+    }
+    const m = String(Math.floor(remain / 60)).padStart(2, '0');
+    const s = String(remain % 60).padStart(2, '0');
+    timerEl.textContent = `⏱ 残り ${m}:${s}`;
+    timerEl.style.color = remain <= 300 ? 'var(--wrong)' : '';
+  } else {
+    timerEl.textContent = `⏱ ${elapsedTimeText()}`;
+  }
+}
+function finishByTimeout() {
+  stopTimer();
+  const q = activeQuestions[currentIndex];
+  const alreadyAnswered = (q.cat === 'mc' && document.querySelectorAll('#mcArea .option-btn[disabled]').length > 0) || currentGrade !== null;
+  if (!alreadyAnswered) {
+    missed.push({q: q.q, a: (q.cat === 'mc' ? q.options[q.correct] : q.a) + '　※時間切れ・未回答'});
+  }
+  showResult();
+}
+
+let examTimeLimitMin = 0;
 
 function launchQuiz(mode) {
   const pool = getFilteredPool();
   if (pool.length === 0) { showAlert('出題対象がありません。フィルタを見直してください。'); return; }
   quizMode = mode;
+  examTimeLimitMin = 0;
   if (mode === 'normal') {
     activeQuestions = shuffle(pool);
   } else if (mode === 'weak') {
@@ -469,11 +581,12 @@ function launchQuiz(mode) {
   } else if (mode === 'exam') {
     const count = Math.max(1, parseInt(document.getElementById('examCount').value) || 20);
     examPassPct = Math.max(1, Math.min(100, parseInt(document.getElementById('examPass').value) || 70));
+    examTimeLimitMin = Math.max(0, parseInt(document.getElementById('examTimeLimit').value) || 0);
     activeQuestions = shuffle(pool).slice(0, Math.min(count, pool.length));
   }
   currentIndex = 0; score = 0; missed = [];
   showScreen('quizScreen');
-  startTimer();
+  startTimer(mode === 'exam' ? examTimeLimitMin * 60 : 0);
   renderQuestion();
 }
 
@@ -482,6 +595,11 @@ document.getElementById('modeWeak').addEventListener('click', () => launchQuiz('
 document.getElementById('modeExam').addEventListener('click', () => showScreen('examSetupScreen'));
 document.getElementById('examSetupBack').addEventListener('click', () => showScreen('homeScreen'));
 document.getElementById('examStartBtn').addEventListener('click', () => launchQuiz('exam'));
+document.getElementById('examPresetBtn').addEventListener('click', () => {
+  document.getElementById('examCount').value = 100;
+  document.getElementById('examPass').value = 70;
+  document.getElementById('examTimeLimit').value = 120;
+});
 document.getElementById('modeStats').addEventListener('click', renderStats);
 document.getElementById('statsBack').addEventListener('click', () => showScreen('homeScreen'));
 
@@ -491,7 +609,7 @@ function renderQuestion() {
   document.getElementById('progressText').textContent = `問題 ${currentIndex + 1} / ${activeQuestions.length}`;
   document.getElementById('scoreText').textContent = `正解 ${score}`;
   document.getElementById('progressFill').style.width = `${(currentIndex / activeQuestions.length) * 100}%`;
-  document.getElementById('qTag').textContent = CAT_LABELS[q.cat] + (quizMode === 'exam' ? '・模擬試験' : quizMode === 'weak' ? '・苦手優先' : '');
+  document.getElementById('qTag').textContent = CAT_LABELS[q.cat] + (quizMode === 'exam' ? '・模擬試験' : quizMode === 'weak' ? '・苦手優先' : quizMode === 'set' ? '・10問チャレンジ' : '');
   document.getElementById('qText').textContent = q.q;
 
   const starBtn = document.getElementById('starBtn');
@@ -575,7 +693,7 @@ function showResult() {
   showScreen('resultScreen');
   document.getElementById('resultScore').textContent = `${score} / ${activeQuestions.length}`;
   const pct = Math.round((score / activeQuestions.length) * 100);
-  document.getElementById('resultSub').textContent = `正答率 ${pct}%　所要時間 ${document.getElementById('timerText').textContent.replace('⏱ ','')}`;
+  document.getElementById('resultSub').textContent = `正答率 ${pct}%　所要時間 ${elapsedTimeText()}`;
   const banner = document.getElementById('passBanner');
   if (quizMode === 'exam') {
     banner.classList.remove('hidden');
@@ -584,6 +702,14 @@ function showResult() {
   } else {
     banner.classList.add('hidden');
   }
+  if (quizMode === 'set') {
+    const key = setKeyFor(activeQuestions);
+    if (!stats.completedSets) stats.completedSets = {};
+    const prev = stats.completedSets[key];
+    stats.completedSets[key] = {count: (prev ? prev.count : 0) + 1, lastScore: score, lastAt: Date.now()};
+    saveStats();
+  }
+  document.getElementById('restartBtn').textContent = quizMode === 'set' ? 'セット一覧に戻る' : 'ホームに戻る';
   const missedList = document.getElementById('missedList');
   missedList.innerHTML = '';
   if (missed.length > 0) {
@@ -599,7 +725,9 @@ function showResult() {
     });
   }
 }
-document.getElementById('restartBtn').addEventListener('click', () => showScreen('homeScreen'));
+document.getElementById('restartBtn').addEventListener('click', () => {
+  if (quizMode === 'set') renderSetsScreen(); else showScreen('homeScreen');
+});
 
 // ---- 暗記カードモード ----
 let flashPool = [];
