@@ -15,8 +15,74 @@
     --card: #ffffff;
     --text: #2c2c2c;
     --muted: #757575;
+    --surface: #f7f8fa;
+    --surface2: #eceff3;
+    --border: #dfe3e8;
+    --hover-bg: #eef3fa;
+    --tag-bg: #eaf1fb;
+    --heading: #1c3557;
+    --line: #eeeeee;
+    --track: #e2e6ec;
+    --correct-bg: #e6f6ea;
+    --wrong-bg: #fbe9e7;
+    --shadow: rgba(0,0,0,0.08);
+    --input-bg: #ffffff;
+    --input-border: #cccccc;
+    --dash: #ccd3db;
   }
-  * { box-sizing: border-box; }
+  :root[data-theme="dark"] {
+    --primary: #5b86c7;
+    --primary-dark: #7da3de;
+    --accent: #e0a458;
+    --correct: #5cc47f;
+    --wrong: #ef7b6e;
+    --bg: #14181f;
+    --card: #1f2530;
+    --text: #e6e9ee;
+    --muted: #9aa3b0;
+    --surface: #272e3b;
+    --surface2: #323a49;
+    --border: #3a4354;
+    --hover-bg: #2c3648;
+    --tag-bg: #2a3650;
+    --heading: #9dbbe8;
+    --line: #2f3746;
+    --track: #364052;
+    --correct-bg: #1d3a2a;
+    --wrong-bg: #402523;
+    --shadow: rgba(0,0,0,0.4);
+    --input-bg: #272e3b;
+    --input-border: #4a5468;
+    --dash: #4a5468;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --primary: #5b86c7;
+      --primary-dark: #7da3de;
+      --accent: #e0a458;
+      --correct: #5cc47f;
+      --wrong: #ef7b6e;
+      --bg: #14181f;
+      --card: #1f2530;
+      --text: #e6e9ee;
+      --muted: #9aa3b0;
+      --surface: #272e3b;
+      --surface2: #323a49;
+      --border: #3a4354;
+      --hover-bg: #2c3648;
+      --tag-bg: #2a3650;
+      --heading: #9dbbe8;
+      --line: #2f3746;
+      --track: #364052;
+      --correct-bg: #1d3a2a;
+      --wrong-bg: #402523;
+      --shadow: rgba(0,0,0,0.4);
+      --input-bg: #272e3b;
+      --input-border: #4a5468;
+      --dash: #4a5468;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     margin: 0;
     font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
@@ -25,94 +91,133 @@
     display: flex;
     justify-content: center;
     padding: 24px 12px;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
   }
   .app { width: 100%; max-width: 720px; }
-  h1 { font-size: 1.3rem; color: var(--primary-dark); text-align: center; margin-bottom: 4px; }
+  h1 { font-size: 1.3rem; color: var(--heading); text-align: center; margin-bottom: 4px; }
   .subtitle { text-align: center; color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
+  .home-summary { text-align: center; color: var(--heading); font-size: 0.85rem; font-weight: bold; margin: -10px 0 16px; }
+  .theme-row { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+  .theme-btn { background: var(--surface2); color: var(--text); padding: 6px 12px; font-size: 0.78rem; }
   .card {
     background: var(--card);
     border-radius: 14px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 10px var(--shadow);
     padding: 22px;
     margin-bottom: 16px;
   }
-  .section-title { font-weight: bold; margin: 14px 0 6px; color: var(--primary-dark); font-size: 0.9rem; }
+  .section-title { font-weight: bold; margin: 14px 0 6px; color: var(--heading); font-size: 0.9rem; }
   .section-title:first-child { margin-top: 0; }
   label.check { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 0.92rem; cursor: pointer; }
+  label.check input { width: 18px; height: 18px; }
   button { font-family: inherit; cursor: pointer; border: none; border-radius: 8px; font-size: 0.95rem; transition: transform 0.08s ease, opacity 0.2s, background 0.15s; }
   button:active { transform: scale(0.97); }
   button:disabled { opacity: 0.5; cursor: default; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .btn-primary { background: var(--primary); color: white; padding: 12px 20px; width: 100%; font-weight: bold; margin-top: 10px; }
   .btn-primary:hover { background: var(--primary-dark); }
-  .btn-secondary { background: #eceff3; color: var(--text); padding: 10px 16px; }
+  :root[data-theme="dark"] .btn-primary:hover { background: #6d97d6; }
+  .btn-secondary { background: var(--surface2); color: var(--text); padding: 10px 16px; }
   .mode-btn {
-    display: block; width: 100%; text-align: left; background: #f7f8fa;
-    border: 1.5px solid #dfe3e8; padding: 14px 16px; border-radius: 10px;
-    margin-bottom: 10px; font-size: 0.95rem;
+    display: block; width: 100%; text-align: left; background: var(--surface);
+    border: 1.5px solid var(--border); padding: 14px 16px; border-radius: 10px;
+    margin-bottom: 10px; font-size: 0.95rem; color: var(--text);
   }
-  .mode-btn:hover { border-color: var(--primary); background: #eef3fa; }
-  .mode-btn .mode-title { font-weight: bold; color: var(--primary-dark); display: block; margin-bottom: 2px; }
+  .mode-btn:hover { border-color: var(--primary); background: var(--hover-bg); }
+  .mode-btn .mode-title { font-weight: bold; color: var(--heading); display: block; margin-bottom: 2px; }
   .mode-btn .mode-desc { font-size: 0.8rem; color: var(--muted); }
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .row input[type=number] { width: 70px; padding: 6px 8px; border-radius: 6px; border: 1px solid #ccc; }
+  .row input[type=number] { width: 70px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text); }
   .progress-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.8rem; color: var(--muted); flex-wrap: wrap; gap: 4px; }
-  .progress-bar { background: #e2e6ec; border-radius: 6px; height: 8px; overflow: hidden; margin-bottom: 18px; }
+  .progress-bar { background: var(--track); border-radius: 6px; height: 8px; overflow: hidden; margin-bottom: 18px; }
   .progress-fill { background: var(--primary); height: 100%; transition: width 0.25s ease; }
   .tag-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .tag { display: inline-block; background: #eaf1fb; color: var(--primary-dark); font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: bold; }
-  .star-btn { background: none; font-size: 1.3rem; padding: 0 4px; color: #ccc; }
+  .tag { display: inline-block; background: var(--tag-bg); color: var(--heading); font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: bold; }
+  .star-btn { background: none; font-size: 1.3rem; padding: 0 4px; color: var(--border); }
   .star-btn.on { color: var(--accent); }
   .question-text { font-size: 1.08rem; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; }
   .options { display: flex; flex-direction: column; gap: 10px; }
-  .option-btn { text-align: left; background: #f7f8fa; border: 1.5px solid #dfe3e8; padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; }
+  .option-btn { text-align: left; background: var(--surface); border: 1.5px solid var(--border); padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; color: var(--text); line-height: 1.5; }
   .option-btn:hover { border-color: var(--primary); }
-  .option-btn.correct { background: #e6f6ea; border-color: var(--correct); color: var(--correct); font-weight: bold; }
-  .option-btn.wrong { background: #fbe9e7; border-color: var(--wrong); color: var(--wrong); font-weight: bold; }
-  .answer-box { background: #f7f8fa; border-left: 4px solid var(--accent); padding: 14px 16px; border-radius: 8px; margin-top: 8px; font-size: 0.98rem; line-height: 1.6; white-space: pre-wrap; }
+  .option-btn.correct { background: var(--correct-bg); border-color: var(--correct); color: var(--correct); font-weight: bold; }
+  .option-btn.wrong { background: var(--wrong-bg); border-color: var(--wrong); color: var(--wrong); font-weight: bold; }
+  .answer-box { background: var(--surface); border-left: 4px solid var(--accent); padding: 14px 16px; border-radius: 8px; margin-top: 8px; font-size: 0.98rem; line-height: 1.6; white-space: pre-wrap; }
   .self-grade { display: flex; gap: 10px; margin-top: 16px; }
   .self-grade button { flex: 1; padding: 12px; font-weight: bold; }
-  .btn-correct { background: #e6f6ea; color: var(--correct); border: 1.5px solid var(--correct); }
-  .btn-wrong { background: #fbe9e7; color: var(--wrong); border: 1.5px solid var(--wrong); }
-  .btn-correct.selected { background: var(--correct); color: white; }
-  .btn-wrong.selected { background: var(--wrong); color: white; }
+  .btn-correct { background: var(--correct-bg); color: var(--correct); border: 1.5px solid var(--correct); }
+  .btn-wrong { background: var(--wrong-bg); color: var(--wrong); border: 1.5px solid var(--wrong); }
+  .btn-correct.selected { background: var(--correct); color: #0f1a14; }
+  .btn-wrong.selected { background: var(--wrong); color: #1f0e0c; }
   .nav-row { display: flex; justify-content: space-between; margin-top: 18px; gap: 10px; }
   .hidden { display: none !important; }
-  .result-score { text-align: center; font-size: 2.4rem; font-weight: bold; color: var(--primary-dark); margin: 10px 0 4px; }
+  .result-score { text-align: center; font-size: 2.4rem; font-weight: bold; color: var(--heading); margin: 10px 0 4px; }
   .result-sub { text-align: center; color: var(--muted); margin-bottom: 6px; }
   .pass-banner { text-align: center; font-weight: bold; padding: 10px; border-radius: 8px; margin: 10px 0 18px; }
-  .pass-banner.pass { background: #e6f6ea; color: var(--correct); }
-  .pass-banner.fail { background: #fbe9e7; color: var(--wrong); }
-  .missed-item { padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+  .pass-banner.pass { background: var(--correct-bg); color: var(--correct); }
+  .pass-banner.fail { background: var(--wrong-bg); color: var(--wrong); }
+  .missed-item { padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
   .missed-item:last-child { border-bottom: none; }
   .missed-q { font-weight: bold; margin-bottom: 4px; }
   .missed-a { color: var(--muted); }
   .back-link { color: var(--primary); font-size: 0.85rem; cursor: pointer; margin-bottom: 8px; display: inline-block; }
   .stat-grid { display: flex; gap: 10px; margin-bottom: 14px; }
-  .stat-box { flex: 1; background: #f7f8fa; border-radius: 10px; padding: 12px; text-align: center; }
-  .stat-box .num { font-size: 1.5rem; font-weight: bold; color: var(--primary-dark); }
+  .stat-box { flex: 1; background: var(--surface); border-radius: 10px; padding: 12px; text-align: center; }
+  .stat-box .num { font-size: 1.5rem; font-weight: bold; color: var(--heading); }
   .stat-box .lbl { font-size: 0.72rem; color: var(--muted); }
-  .cat-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; border-bottom: 1px solid #f0f0f0; }
-  .weak-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; gap: 10px; }
+  .cat-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; border-bottom: 1px solid var(--line); }
+  .weak-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 0.88rem; gap: 10px; }
   .weak-item .qtext { flex: 1; }
   .weak-item .acc { color: var(--wrong); font-weight: bold; white-space: nowrap; }
-  .flash-card { min-height: 140px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; border: 1.5px dashed #ccd3db; border-radius: 12px; margin-bottom: 16px; cursor: pointer; }
-  .set-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #eee; }
+  .flash-card { min-height: 140px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; border: 1.5px dashed var(--dash); border-radius: 12px; margin-bottom: 16px; cursor: pointer; }
+  .set-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
   .set-item:last-child { border-bottom: none; }
   .set-info .set-title { font-weight: bold; font-size: 0.92rem; }
   .set-status { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
   .set-status.done { color: var(--correct); font-weight: bold; }
   .timer { font-variant-numeric: tabular-nums; }
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 100; }
-  .modal-box { background: white; border-radius: 12px; padding: 22px; max-width: 380px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+  .modal-box { background: var(--card); color: var(--text); border-radius: 12px; padding: 22px; max-width: 380px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
   .modal-message { font-size: 0.95rem; line-height: 1.6; margin-bottom: 18px; white-space: pre-wrap; }
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
   .modal-actions button { padding: 10px 18px; }
+  /* 学習状況の見える化 */
+  .bar-row { margin-bottom: 10px; font-size: 0.86rem; }
+  .bar-row .bar-head { display: flex; justify-content: space-between; margin-bottom: 4px; gap: 8px; }
+  .bar-track { background: var(--track); border-radius: 6px; height: 10px; overflow: hidden; }
+  .bar-fill { background: var(--primary); height: 100%; }
+  .mastery-bar { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--track); margin-bottom: 8px; }
+  .mastery-bar > div { height: 100%; }
+  .m-mastered { background: var(--correct); }
+  .m-learning { background: var(--accent); }
+  .m-review { background: var(--wrong); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.78rem; color: var(--muted); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+  .week-chart { display: flex; gap: 8px; align-items: flex-end; height: 120px; padding-top: 6px; }
+  .week-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; font-size: 0.72rem; color: var(--muted); }
+  .week-col .wk-bar { width: 100%; max-width: 34px; background: var(--primary); border-radius: 4px 4px 0 0; min-height: 0; }
+  .week-col .wk-num { margin-bottom: 2px; color: var(--text); }
+  .week-col .wk-day { margin-top: 4px; }
+  .kbd-hint { font-size: 0.74rem; color: var(--muted); margin-top: 12px; line-height: 1.6; }
+  @media (max-width: 480px) {
+    body { padding: 12px 8px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+    .card { padding: 16px; border-radius: 12px; }
+    h1 { font-size: 1.15rem; }
+    .question-text { font-size: 1rem; }
+    .option-btn { padding: 14px; min-height: 48px; }
+    .btn-primary, .btn-secondary { min-height: 44px; }
+    .self-grade button { min-height: 48px; }
+    .stat-grid { flex-wrap: wrap; }
+    .stat-box { flex: 1 1 28%; min-width: 90px; }
+    .kbd-hint { display: none; }
+  }
 </style>
 </head>
 <body>
 <div class="app">
+  <div class="theme-row"><button class="theme-btn" id="themeBtn">表示切替(ライト/ダーク)</button></div>
   <h1>イベント業務管理士 学習アプリ</h1>
   <div class="subtitle">第1章・第2章 対応(随時追加中)</div>
+  <div class="home-summary" id="homeSummary"></div>
 
   <!-- ホーム画面 -->
   <div class="card" id="homeScreen">
@@ -131,6 +236,14 @@
     <button class="mode-btn" id="modeWeak">
       <span class="mode-title">🎯 苦手優先クイズ</span>
       <span class="mode-desc">よく間違える問題・まだ解いていない問題を優先的に出題。</span>
+    </button>
+    <button class="mode-btn" id="modeReview">
+      <span class="mode-title">間違えた問題の復習 <span id="reviewCount"></span></span>
+      <span class="mode-desc">直近で間違えた問題だけを出題。正解すると復習対象から外れる。</span>
+    </button>
+    <button class="mode-btn" id="modeBookmark">
+      <span class="mode-title">ブックマーク問題だけ解く <span id="bookmarkCount"></span></span>
+      <span class="mode-desc">★を付けた問題だけを出題。重要問題の総復習用。</span>
     </button>
     <button class="mode-btn" id="modeSets">
       <span class="mode-title">📚 10問チャレンジ</span>
@@ -202,6 +315,7 @@
 
     <div id="explainBox" class="answer-box hidden" style="border-left-color:var(--primary); margin-top:10px;"></div>
 
+    <div class="kbd-hint">キーボード操作: 4択は 1〜4 で選択 / 一問一答は Enter で答えを表示、1 で「正解できた」、2 で「間違えた」 / Enter または → で次の問題へ</div>
     <div class="nav-row">
       <button class="btn-secondary" id="quitBtn">中断する</button>
       <button class="btn-primary" id="nextBtn" style="width:auto; margin-top:0;" disabled>次の問題へ</button>
@@ -242,6 +356,7 @@
     <div class="result-sub" id="resultSub"></div>
     <div id="passBanner" class="pass-banner hidden"></div>
     <div id="missedList"></div>
+    <button class="btn-secondary hidden" id="retryMissedBtn" style="width:100%; margin-top:12px;">間違えた問題だけもう一度解く</button>
     <button class="btn-primary" id="restartBtn">ホームに戻る</button>
   </div>
 
@@ -254,12 +369,31 @@
       <div class="stat-box"><div class="num" id="statAccuracy">-</div><div class="lbl">全体正答率</div></div>
       <div class="stat-box"><div class="num" id="statBookmarks">0</div><div class="lbl">ブックマーク数</div></div>
     </div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="num" id="statStreak">0</div><div class="lbl">連続学習日数</div></div>
+      <div class="stat-box"><div class="num" id="statToday">0</div><div class="lbl">今日の解答数</div></div>
+      <div class="stat-box"><div class="num" id="statMastered">0</div><div class="lbl">習得済みの問題数</div></div>
+    </div>
+    <div class="section-title">習得度(全問題)</div>
+    <div class="mastery-bar" id="masteryBar"></div>
+    <div class="legend" id="masteryLegend"></div>
+    <div class="section-title">直近7日間の解答数</div>
+    <div class="week-chart" id="weekChart"></div>
+    <div class="section-title">章別正答率</div>
+    <div id="chapterStats"></div>
     <div class="section-title">カテゴリ別正答率</div>
     <div id="catStats"></div>
     <div class="section-title">苦手問題ランキング(正答率が低い順)</div>
     <div id="weakList"></div>
     <div class="section-title">ブックマークした問題</div>
     <div id="bookmarkList"></div>
+    <div class="section-title">学習記録のバックアップ</div>
+    <div style="font-size:0.78rem; color:var(--muted); margin-bottom:8px;">学習記録はこの端末のブラウザ内に保存されています。端末の変更やデータ削除に備えて、ファイルに書き出せます。</div>
+    <div class="row">
+      <button class="btn-secondary" id="exportStatsBtn">記録を書き出す</button>
+      <button class="btn-secondary" id="importStatsBtn">記録を読み込む</button>
+      <input type="file" id="importStatsFile" accept="application/json,.json" class="hidden">
+    </div>
     <button class="btn-secondary" id="resetStatsBtn" style="width:100%; margin-top:16px;">学習記録をリセットする</button>
   </div>
 
@@ -321,6 +455,16 @@ const QUESTIONS = [
   {id:'ch1-m03', chapter:'ch1', cat:'mc', q:'イベントの人的構成要素として正しくないものはどれか。', options:['主催者','参加者','来場者','実行委員長'], correct:3},
   {id:'ch1-m04', chapter:'ch1', cat:'mc', q:'「イベントとは、何らかの目的を達成するための手段として行う行・催事である」という定義は、どのような視点からの定義か。', options:['概念的な定義','構造的な定義','実務的な定義','形態的な定義'], correct:0},
 
+  {id:'ch1-m05', chapter:'ch1', cat:'mc', q:'イベントの主催者別分類のうち、家族・親族・友人グループ・職場同僚等が自己の楽しみや伝統継承のために開催するものはどれか。', options:['私的イベント','行政イベント','産業イベント','市民イベント'], correct:0},
+  {id:'ch1-m06', chapter:'ch1', cat:'mc', q:'サステナビリティ(持続可能性)の構成概念である3要素に含まれないものはどれか。', options:['技術革新','環境責任','経済活動','社会進歩'], correct:0},
+  {id:'ch1-m07', chapter:'ch1', cat:'mc', q:'1851年に開催された世界初の国際博覧会(ロンドン万国博覧会)で、会場として建設され大変な人気を呼んだ建築物はどれか。', options:['エッフェル塔','クリスタルパレス(水晶宮)','太陽の塔','凱旋門'], correct:1},
+  {id:'ch1-m08', chapter:'ch1', cat:'mc', q:'イベントの構造的特性に含まれないものはどれか。', options:['一過性','仮設性','永続性','複雑性'], correct:2},
+  {id:'ch1-m09', chapter:'ch1', cat:'mc', q:'イベントの行・催事プログラムの基本形式に含まれないものはどれか。', options:['演技・競技形式','展示形式','式典形式','契約形式'], correct:3},
+  {id:'ch1-m10', chapter:'ch1', cat:'mc', q:'工程表のうち、各作業の前後関係を矢線でつなぎ、業務全体の関係性を俯瞰できる方式はどれか。', options:['バーチャート方式','ネットワーク方式','マトリクス方式','ツリー方式'], correct:1},
+  {id:'ch1-m11', chapter:'ch1', cat:'mc', q:'イベントの品質を分けて考える際の3つの品質に含まれないものはどれか。', options:['企画品質','販売品質','制作品質','運営品質'], correct:1},
+  {id:'ch1-m12', chapter:'ch1', cat:'mc', q:'イベントの4大管理に含まれないものはどれか。', options:['品質管理','工程管理','広報管理','予算管理'], correct:2},
+  {id:'ch1-m13', chapter:'ch1', cat:'mc', q:'会議・集会系イベントの後方支援を専門に行うPCOは、米国では何と呼ばれているか。', options:['イベント・コーディネーター','コンベンション・マネージャー','ミーティング・プランナー','エキシビション・ディレクター'], correct:2},
+
   {id:'ch2-s01', chapter:'ch2', cat:'short', q:'イベントの場合の「企画」の定義を答えよ。', a:'新たにモノやコトを考え出し、その基本的な構造や仕組みを明らかにしたもの'},
   {id:'ch2-s02', chapter:'ch2', cat:'short', q:'「計画」の定義を答えよ。', a:'企画を実現するための手段や方法を、プロセス(手順・段取り)で示したもの'},
   {id:'ch2-s03', chapter:'ch2', cat:'short', q:'イベントの企画立案にあたっての3つの制約を答えよ。', a:'コンプライアンスの徹底、6W2Hの面での制約、プロジェクトの制約'},
@@ -362,6 +506,16 @@ const QUESTIONS = [
   {id:'ch2-m02', chapter:'ch2', cat:'mc', q:'オズボーンのチェックリストの項目として紹介されていないものはどれか。', options:['他に使い道はないか','応用や真似はできないか','収支を計算したら','組み合わせたら'], correct:2},
   {id:'ch2-m03', chapter:'ch2', cat:'mc', q:'プレゼンテーションにおける「起承転結」のうち、「転」にあたる内容はどれか。', options:['挨拶・予告・つかみ','企画背景・考え方・コンセプト&テーマ','会場・プログラム・運営の具体案','実現性・まとめ'], correct:2},
   {id:'ch2-m04', chapter:'ch2', cat:'mc', q:'「企画書は基本構想と基本計画の合体である」とされるのは、どのような場合の企画書か。', options:['定期的に開催するイベントや小規模なイベントの場合','大規模イベントかつ長期間かけて企画する場合のみ','博覧会など特別大型イベントに限る','実施計画を策定しない場合に限る'], correct:0},
+
+  {id:'ch2-m05', chapter:'ch2', cat:'mc', q:'米国のジェームス・W・ヤングは、アイデアをどのように定義したか。', options:['既存の要素の新しい組み合わせである','全く新しい要素の発明である','過去の成功事例の模倣である','偶然の思いつきである'], correct:0},
+  {id:'ch2-m06', chapter:'ch2', cat:'mc', q:'SWOT分析において、自社の内部要因にあたるものはどれか。', options:['機会と脅威','機会と弱み','強みと脅威','強みと弱み'], correct:3},
+  {id:'ch2-m07', chapter:'ch2', cat:'mc', q:'ブレーンストーミングの4大ルールに含まれないものはどれか。', options:['自由奔放に意見を出す','他人の意見を批判しない','アイデアの質を最優先する','他人のアイデアへの便乗・改善を奨励する'], correct:2},
+  {id:'ch2-m08', chapter:'ch2', cat:'mc', q:'イベントの企画・計画の3段階のうち、「基本計画」は何づくりと呼ばれるか。', options:['仕組みづくり','仕掛けづくり','仕切りづくり','仕込みづくり'], correct:0},
+  {id:'ch2-m09', chapter:'ch2', cat:'mc', q:'企画書によってクライアントの信頼を獲得するための3要素に含まれないものはどれか。', options:['理解力','提案力','実行力','交渉力'], correct:3},
+  {id:'ch2-m10', chapter:'ch2', cat:'mc', q:'企画案のフィジビリティーチェックの4項目に含まれないものはどれか。', options:['技術的フィジビリティー','広報的フィジビリティー','予算的フィジビリティー','コンプライアンス・フィジビリティー'], correct:1},
+  {id:'ch2-m11', chapter:'ch2', cat:'mc', q:'告知・集客スケジュールの4期間のうち、開催概要の発表と認知の獲得を行い、パブリシティを重視する期間はどれか。', options:['中期告知期','後期集客促進期','初期告知期','直前盛り上げ期'], correct:2},
+  {id:'ch2-m12', chapter:'ch2', cat:'mc', q:'広告・プロモーション活動の予算決定方法のうち、目的・目標値の達成に必要な予算を決定する方法はどれか。', options:['支出可能額法','売上高比率法','競争者対抗法','目標基準法'], correct:3},
+  {id:'ch2-m13', chapter:'ch2', cat:'mc', q:'ピラミッド型論述では、どの順に展開するか。最初に述べるものはどれか。', options:['結論','結論の論拠','結論の展開・具体案','前提条件'], correct:0},
 ];
 
 const EXPLANATIONS_CH1 = {
@@ -400,7 +554,16 @@ const EXPLANATIONS_CH1 = {
   'ch1-m01': {page:'P.39', explain:'見本市・展示会系イベントは、本書の「目的別分類」ではなく「形態別分類」(図表1-2、図表3-1参照)に含まれる分類項目である。目的別分類には教育・啓発・普及イベント、広報・PR・販促イベント、ソーシャルキャピタル形成イベント、経済・産業振興イベント、興行イベントの5つが含まれる。'},
   'ch1-m02': {page:'P.6', explain:'図表1-3「イベント産業の消費規模(2017年1~12月・JACE推計)」によれば、全カテゴリー合計消費規模は16兆6,490億円である。日本イベント産業振興協会(JACE)が来場者の消費額に基づき毎年発表している推計で、興行イベントの消費規模(5兆6,828億円)が最も大きい。'},
   'ch1-m03': {page:'P.24', explain:'イベントの5つの人的構成要素は「主催者」「参加者」「来場者」「支援者」「制作者」であり(図表2-2)、「実行委員長」はこの5要素のいずれにも該当しない個別の役職名である。実行委員長は主催者組織内の一役職にすぎず、構成要素の分類概念とは異なる。'},
-  'ch1-m04': {page:'P.21', explain:'「イベントとは、何らかの目的を達成するための手段として行う行・催事である」という定義は、本文で「①概念的な定義」として紹介されている。これは旧通商産業省の「イベント研究会」が策定した定義で、他に「②構造的な定義」「③実務的な定義」の計3つの代表的な定義が本書で示されている。'}
+  'ch1-m04': {page:'P.21', explain:'「イベントとは、何らかの目的を達成するための手段として行う行・催事である」という定義は、本文で「①概念的な定義」として紹介されている。これは旧通商産業省の「イベント研究会」が策定した定義で、他に「②構造的な定義」「③実務的な定義」の計3つの代表的な定義が本書で示されている。'},
+  'ch1-m05': {page:'P.3', explain:'主催者別分類には、行政イベント・産業イベント・市民イベントに加えて、家族・親族・友人グループ・職場同僚等が自己の楽しみや伝統継承のために開催する「私的イベント」がある(図表1-2)。近年はSNSでの発信を前提に新たな演出が加えられ、イベント化する傾向がある(P.41)。'},
+  'ch1-m06': {page:'P.7', explain:'図表1-5「サステナビリティの構成概念」では、持続可能な開発を実現する3要素として「環境責任」「経済活動」「社会進歩」が示されている。「技術革新」は3要素に含まれない。この3つのバランスのとれたアプローチによってサステナビリティが実現されるとされる。'},
+  'ch1-m07': {page:'P.17', explain:'1851年の「ロンドン万国博覧会」は世界初の国際博覧会であり、会場として建設された鉄骨とガラスの大建築「クリスタルパレス(水晶宮)」が大変な人気を呼んだ。この成功が19世紀後半から20世紀にかけての万国博覧会ブームの契機となった。'},
+  'ch1-m08': {page:'P.27', explain:'イベントの構造的特性は「一過性」「仮設性」「複雑性」「自己実現性」の4種類である。「永続性」は含まれない(イベントは一過性のものである)。これらは同時にイベントがもつ豊かな機能や役割を示すものとされる。'},
+  'ch1-m09': {page:'P.25', explain:'行・催事プログラムの5つの基本形式は「演技・競技形式」「展示形式」「会議・集会形式」「式典形式」「宴会形式」である。「契約形式」は含まれない。多くのイベントはこれら複数の形式の組み合わせで構成されている。'},
+  'ch1-m10': {page:'P.76', explain:'工程表には「バーチャート方式」と「ネットワーク方式」の2種類がある。ネットワーク方式は各作業の前後関係を矢線でつなぎ、業務全体の関係性を俯瞰できる点が特徴である。バーチャート方式は横軸に日時、縦軸に業務項目を表記し作業期間を棒グラフで示すもので、見やすいが関係性がわかりにくい。'},
+  'ch1-m11': {page:'P.72', explain:'複雑な品質構造をもったイベントは「企画品質」「制作品質」「運営品質」の3つに分けて品質管理を考える必要がある。企画品質は内容の質やレベル、制作品質はプロセスの質、運営品質は会場運営の質を指す。「販売品質」は含まれない。'},
+  'ch1-m12': {page:'P.71', explain:'イベントの4大管理は「品質管理」「工程管理」「予算管理」「安全管理」である。「広報管理」は含まれない。業務管理課題は「高品質のイベントを、スケジュールどおりに、予算内で、安全に創る」ことであり、この4つが最も重要とされる。'},
+  'ch1-m13': {page:'P.63', explain:'会議・集会系イベントの後方支援業務を専門に行う専門家・専門会社をPCO(Professional Congress Organizer)といい、米国では「ミーティング・プランナー」と呼ばれている。'}
 };
 
 const EXPLANATIONS_CH2 = {
@@ -442,7 +605,16 @@ const EXPLANATIONS_CH2 = {
   'ch2-m01': {page:'P.92(推定)', explain:'イベントの企画立案ステップは、ステップ1「イベント企画の目的・ゴールの明確化」、ステップ2「社会・市場状況等、関連する情報・データの収集・分析」、ステップ3「コアアイデアの創出」、ステップ4「企画の論理構成」の順である。いきなり企画を考えてもすぐ行き詰まるため、まず目的の明確化と情報収集を行ってからコアアイデアを創出するという段取りの重要性が強調されている。'},
   'ch2-m02': {page:'P.94', explain:'オズボーンのチェックリストは「他に使い道はないか」「応用や真似はできないか」「修正したら」「拡大したら」「縮小したら」「代用したら」「アレンジし直したら」「逆にしたら」「組み合わせたら」の9項目であり、「収支を計算したら」という財務的な視点の項目は含まれていない。同チェックリストは属性変更によるアイデア創出のためのものであり、予算検証はフィジビリティーチェック(P.108)など別の枠組みで扱われる。'},
   'ch2-m03': {page:'P.112', explain:'イベントのプレゼンにおける起承転結では、「転」は長い本論にあたり、会場デザイン構成・プログラム内容・運営内容といった聞き手が最も関心を寄せる部分について、平面図やパース、動画、写真などの視覚化した資料(ビジュアルツール)を駆使し、重要部分を中心にテンポよく説明する箇所とされている。'},
-  'ch2-m04': {page:'P.104', explain:'「企画書は基本構想と基本計画の合体である」とされるのは、定期的に開催するイベントや小規模なイベントの場合である。この場合、時間的・費用的な合理性から、企画書と実施計画の2段階で策定されるため、企画書自体が基本構想と基本計画の役割を兼ねたものになると説明されている。'}
+  'ch2-m04': {page:'P.104', explain:'「企画書は基本構想と基本計画の合体である」とされるのは、定期的に開催するイベントや小規模なイベントの場合である。この場合、時間的・費用的な合理性から、企画書と実施計画の2段階で策定されるため、企画書自体が基本構想と基本計画の役割を兼ねたものになると説明されている。'},
+  'ch2-m05': {page:'P.92', explain:'ジェームス・W・ヤングの著書「アイデアのつくり方」で示された定義は「アイデアとは、既存の要素の新しい組み合わせである」。知識や情報が全くないところからはアイデアは生まれないという考え方を象徴している。'},
+  'ch2-m06': {page:'P.96', explain:'SWOT分析では、強み(Strength)・弱み(Weakness)が自社の内部要因、機会(Opportunity)・脅威(Threat)が社会・市場の外部要因である。'},
+  'ch2-m07': {page:'P.95', explain:'ブレーンストーミングの4大ルールは「自由奔放に意見を出す」「他人の意見を批判しない」「他人のアイデアへの便乗・改善の奨励」「アイデア素材の量を重視する」である。重視するのは質ではなく量であり、「アイデアの質を最優先する」は誤り。基本は、その場で即座に評価しない「判断の留保」である。'},
+  'ch2-m08': {page:'P.103', explain:'基本構想は「仕掛け」づくり、基本計画は「仕組み」づくり、実施計画は「仕切り」づくりと定義される。基本計画は、具体的で実現可能、かつコンセプトに適合した計画書である。'},
+  'ch2-m09': {page:'P.105', explain:'企画書によってクライアントとの信頼関係を築くための3要素は「理解力」「提案力」「実行力」である。「交渉力」は含まれない。それぞれ、安心感・期待感・信頼感を得ることに対応する。'},
+  'ch2-m10': {page:'P.108', explain:'企画案のフィジビリティー(実現可能性)チェックの4項目は、技術的フィジビリティー、制作日程的フィジビリティー、予算的フィジビリティー、コンプライアンス・フィジビリティーである。「広報的フィジビリティー」は含まれない。'},
+  'ch2-m11': {page:'P.119', explain:'告知・集客スケジュールの4期間のうち、「初期告知期」は開催概要の発表と認知の獲得を行うパブリシティ重視の期間である。中期告知期は参加企業との共同展開による認知の拡大、後期集客促進期は来場者確保、直前盛り上げ期は開催期間の再認知と期待感の醸成にあたる。'},
+  'ch2-m12': {page:'P.124', explain:'予算決定の4つの考え方のうち、「目標基準法」は目的・目標値の達成に必要な予算を決定する方法である。支出可能額法は企画書で設定された金額の範囲内、売上高比率法は売上目標値に一定比率を乗じる、競争者対抗法は競争者の動向を見て決定する方法である。'},
+  'ch2-m13': {page:'P.113', explain:'ピラミッド型論述は「①結論(コンセプト&テーマ・コアアイデア) → ②結論の論拠(企画背景と考え方・企画の方向性) → ③結論の展開・具体案」の順に展開する。最初に述べるのは結論であり、上から下へ説明量が増えていくためピラミッド型になる。'}
 };
 
 const EXPLANATIONS = Object.assign({}, EXPLANATIONS_CH1, EXPLANATIONS_CH2);
@@ -457,16 +629,68 @@ function loadStats() {
   } catch (e) {}
   return {perQuestion: {}};
 }
-function saveStats() { localStorage.setItem(STORAGE_KEY, JSON.stringify(stats)); }
+function saveStats() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stats)); } catch (e) {}
+}
 function getQStat(id) {
   if (!stats.perQuestion[id]) stats.perQuestion[id] = {seen:0, correct:0, wrong:0, bookmarked:false};
   return stats.perQuestion[id];
+}
+function todayKey(d) {
+  d = d || new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 function recordResult(id, isCorrect) {
   const s = getQStat(id);
   s.seen++;
   if (isCorrect) s.correct++; else s.wrong++;
+  s.last = isCorrect; // 直近の正誤(復習モード・習得度の判定に使用)
+  if (!stats.daily) stats.daily = {};
+  const k = todayKey();
+  const d = stats.daily[k] || (stats.daily[k] = {answered:0, correct:0});
+  d.answered++;
+  if (isCorrect) d.correct++;
   saveStats();
+}
+// 直近で間違えた状態か(旧データは直近の正誤がないため、誤答歴があれば対象とする)
+function isWrongNow(q) {
+  const s = stats.perQuestion[q.id];
+  if (!s) return false;
+  if (s.last === false) return true;
+  return s.last === undefined && s.wrong > 0;
+}
+// 習得度: new=未学習 / review=要復習 / mastered=習得済み / learning=学習中
+function masteryOf(q) {
+  const s = stats.perQuestion[q.id];
+  if (!s || s.seen === 0) return 'new';
+  if (isWrongNow(q)) return 'review';
+  if (s.correct >= 2 && s.correct / s.seen >= 0.8) return 'mastered';
+  return 'learning';
+}
+function isBookmarked(q) {
+  const s = stats.perQuestion[q.id];
+  return !!(s && s.bookmarked);
+}
+function calcStreak() {
+  const daily = stats.daily || {};
+  const d = new Date();
+  if (!(daily[todayKey(d)] && daily[todayKey(d)].answered > 0)) d.setDate(d.getDate() - 1); // 今日まだなら昨日から数える
+  let streak = 0;
+  while (daily[todayKey(d)] && daily[todayKey(d)].answered > 0) {
+    streak++;
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+function updateHomeSummary() {
+  const todayRec = (stats.daily && stats.daily[todayKey()]) || {answered:0};
+  const mastered = QUESTIONS.filter(q => masteryOf(q) === 'mastered').length;
+  document.getElementById('homeSummary').textContent =
+    `連続学習 ${calcStreak()}日 ・ 今日 ${todayRec.answered}問 ・ 習得済み ${mastered} / ${QUESTIONS.length}問`;
+  const reviewN = QUESTIONS.filter(isWrongNow).length;
+  const bookmarkN = QUESTIONS.filter(isBookmarked).length;
+  document.getElementById('reviewCount').textContent = reviewN > 0 ? `(${reviewN}問)` : '';
+  document.getElementById('bookmarkCount').textContent = bookmarkN > 0 ? `(${bookmarkN}問)` : '';
 }
 function toggleBookmark(id) {
   const s = getQStat(id);
@@ -506,6 +730,9 @@ function showConfirm(message, onOk) {
 const screens = ['homeScreen','examSetupScreen','quizScreen','flashScreen','setsScreen','resultScreen','statsScreen'];
 function showScreen(id) {
   screens.forEach(s => document.getElementById(s).classList.toggle('hidden', s !== id));
+  document.getElementById('homeSummary').classList.toggle('hidden', id !== 'homeScreen');
+  if (id === 'homeScreen') updateHomeSummary();
+  window.scrollTo(0, 0);
 }
 
 // 章チェックボックス生成
@@ -609,6 +836,7 @@ let timerInterval = null;
 let timerLimitSec = 0;
 
 function startTimer(limitSec) {
+  stopTimer(); // 前回のタイマーが残っていても二重にならないようにする
   timerLimitSec = limitSec || 0;
   timerStart = Date.now();
   const timerEl = document.getElementById('timerText');
@@ -647,7 +875,7 @@ function finishByTimeout() {
   const q = activeQuestions[currentIndex];
   const alreadyAnswered = (q.cat === 'mc' && document.querySelectorAll('#mcArea .option-btn[disabled]').length > 0) || currentGrade !== null;
   if (!alreadyAnswered) {
-    missed.push({q: q.q, a: (q.cat === 'mc' ? q.options[q.correct] : q.a) + '　※時間切れ・未回答'});
+    missed.push({id: q.id, q: q.q, a: (q.cat === 'mc' ? q.options[q.correct] : q.a) + '　※時間切れ・未回答'});
   }
   showResult();
 }
@@ -655,11 +883,18 @@ function finishByTimeout() {
 let examTimeLimitMin = 0;
 
 function launchQuiz(mode) {
-  const pool = getFilteredPool();
+  let pool = getFilteredPool();
   if (pool.length === 0) { showAlert('出題対象がありません。フィルタを見直してください。'); return; }
+  if (mode === 'review') {
+    pool = pool.filter(isWrongNow);
+    if (pool.length === 0) { showAlert('復習対象の問題はありません。\n(選んだ範囲に、直近で間違えた問題がありません)'); return; }
+  } else if (mode === 'bookmark') {
+    pool = pool.filter(isBookmarked);
+    if (pool.length === 0) { showAlert('ブックマークした問題がありません。\n(選んだ範囲に、★を付けた問題がありません)'); return; }
+  }
   quizMode = mode;
   examTimeLimitMin = 0;
-  if (mode === 'normal') {
+  if (mode === 'normal' || mode === 'review' || mode === 'bookmark') {
     activeQuestions = shuffle(pool);
   } else if (mode === 'weak') {
     activeQuestions = weightedSample(pool, Math.min(20, pool.length));
@@ -677,6 +912,8 @@ function launchQuiz(mode) {
 
 document.getElementById('modeNormal').addEventListener('click', () => launchQuiz('normal'));
 document.getElementById('modeWeak').addEventListener('click', () => launchQuiz('weak'));
+document.getElementById('modeReview').addEventListener('click', () => launchQuiz('review'));
+document.getElementById('modeBookmark').addEventListener('click', () => launchQuiz('bookmark'));
 document.getElementById('modeExam').addEventListener('click', () => showScreen('examSetupScreen'));
 document.getElementById('examSetupBack').addEventListener('click', () => showScreen('homeScreen'));
 document.getElementById('examStartBtn').addEventListener('click', () => launchQuiz('exam'));
@@ -694,7 +931,7 @@ function renderQuestion() {
   document.getElementById('progressText').textContent = `問題 ${currentIndex + 1} / ${activeQuestions.length}`;
   document.getElementById('scoreText').textContent = `正解 ${score}`;
   document.getElementById('progressFill').style.width = `${(currentIndex / activeQuestions.length) * 100}%`;
-  document.getElementById('qTag').textContent = CAT_LABELS[q.cat] + (quizMode === 'exam' ? '・模擬試験' : quizMode === 'weak' ? '・苦手優先' : quizMode === 'set' ? '・10問チャレンジ' : '');
+  document.getElementById('qTag').textContent = CAT_LABELS[q.cat] + ({exam:'・模擬試験', weak:'・苦手優先', set:'・10問チャレンジ', review:'・間違えた問題の復習', bookmark:'・ブックマーク', retry:'・間違えた問題の再挑戦'}[quizMode] || '');
   document.getElementById('qText').textContent = q.q;
 
   const starBtn = document.getElementById('starBtn');
@@ -738,7 +975,7 @@ function selectOption(idx) {
   });
   const isCorrect = idx === q.correct;
   recordResult(q.id, isCorrect);
-  if (isCorrect) score++; else missed.push({q: q.q, a: q.options[q.correct]});
+  if (isCorrect) score++; else missed.push({id: q.id, q: q.q, a: q.options[q.correct]});
   document.getElementById('scoreText').textContent = `正解 ${score}`;
   document.getElementById('nextBtn').disabled = false;
   showExplanation(q.id);
@@ -770,7 +1007,7 @@ function selfGrade(isCorrect) {
   const q = activeQuestions[currentIndex];
   if (currentGrade === null) {
     recordResult(q.id, isCorrect);
-    if (isCorrect) score++; else missed.push({q: q.q, a: q.a});
+    if (isCorrect) score++; else missed.push({id: q.id, q: q.q, a: q.a});
     document.getElementById('scoreText').textContent = `正解 ${score}`;
   }
   currentGrade = isCorrect;
@@ -809,6 +1046,7 @@ function showResult() {
     saveStats();
   }
   document.getElementById('restartBtn').textContent = quizMode === 'set' ? 'セット一覧に戻る' : 'ホームに戻る';
+  document.getElementById('retryMissedBtn').classList.toggle('hidden', !missed.some(m => m.id));
   const missedList = document.getElementById('missedList');
   missedList.innerHTML = '';
   if (missed.length > 0) {
@@ -824,6 +1062,16 @@ function showResult() {
     });
   }
 }
+document.getElementById('retryMissedBtn').addEventListener('click', () => {
+  const qs = missed.map(m => QUESTIONS.find(q => q.id === m.id)).filter(Boolean);
+  if (qs.length === 0) return;
+  quizMode = 'retry';
+  activeQuestions = shuffle(qs);
+  currentIndex = 0; score = 0; missed = [];
+  showScreen('quizScreen');
+  startTimer(0);
+  renderQuestion();
+});
 document.getElementById('restartBtn').addEventListener('click', () => {
   if (quizMode === 'set') renderSetsScreen(); else showScreen('homeScreen');
 });
@@ -897,6 +1145,66 @@ function renderStats() {
   document.getElementById('statAccuracy').textContent = totalSeen > 0 ? Math.round((totalCorrect/totalSeen)*100) + '%' : '-';
   document.getElementById('statBookmarks').textContent = bookmarkCount;
 
+  // 連続学習日数・今日の解答数
+  const todayRec = (stats.daily && stats.daily[todayKey()]) || {answered:0};
+  document.getElementById('statStreak').textContent = calcStreak();
+  document.getElementById('statToday').textContent = todayRec.answered;
+
+  // 習得度
+  const mc = {mastered:0, learning:0, review:0, new:0};
+  QUESTIONS.forEach(q => mc[masteryOf(q)]++);
+  document.getElementById('statMastered').textContent = mc.mastered;
+  const total = QUESTIONS.length || 1;
+  const masteryBar = document.getElementById('masteryBar');
+  masteryBar.innerHTML = '';
+  ['mastered', 'learning', 'review'].forEach(k => {
+    const seg = document.createElement('div');
+    seg.className = 'm-' + k;
+    seg.style.width = (mc[k] / total * 100) + '%';
+    masteryBar.appendChild(seg);
+  });
+  document.getElementById('masteryLegend').innerHTML =
+    `<span><i class="m-mastered"></i>習得済み ${mc.mastered}問</span>` +
+    `<span><i class="m-learning"></i>学習中 ${mc.learning}問</span>` +
+    `<span><i class="m-review"></i>要復習 ${mc.review}問</span>` +
+    `<span><i style="background:var(--track)"></i>未学習 ${mc.new}問</span>`;
+
+  // 直近7日間の解答数
+  const weekChart = document.getElementById('weekChart');
+  weekChart.innerHTML = '';
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const rec = (stats.daily && stats.daily[todayKey(d)]) || {answered:0, correct:0};
+    days.push({label: `${d.getMonth() + 1}/${d.getDate()}`, n: rec.answered});
+  }
+  const maxN = Math.max(1, ...days.map(x => x.n));
+  days.forEach(x => {
+    const col = document.createElement('div');
+    col.className = 'week-col';
+    col.innerHTML = `<div class="wk-num">${x.n > 0 ? x.n : ''}</div><div class="wk-bar" style="height:${x.n / maxN * 80}px"></div><div class="wk-day">${x.label}</div>`;
+    weekChart.appendChild(col);
+  });
+
+  // 章別正答率
+  const chapterStatsEl = document.getElementById('chapterStats');
+  chapterStatsEl.innerHTML = '';
+  CHAPTERS.forEach(ch => {
+    let seen = 0, correct = 0, mastered = 0, count = 0;
+    QUESTIONS.filter(q => q.chapter === ch.id).forEach(q => {
+      count++;
+      const s = stats.perQuestion[q.id];
+      if (s) { seen += s.seen; correct += s.correct; }
+      if (masteryOf(q) === 'mastered') mastered++;
+    });
+    const pct = seen > 0 ? Math.round(correct / seen * 100) : 0;
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML = `<div class="bar-head"><span>${ch.name}</span><span>${seen > 0 ? `${pct}% (${correct}/${seen})` : '未実施'} ・ 習得 ${mastered}/${count}問</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>`;
+    chapterStatsEl.appendChild(row);
+  });
+
   const catStatsEl = document.getElementById('catStats');
   catStatsEl.innerHTML = '';
   Object.keys(CAT_LABELS).forEach(c => {
@@ -949,6 +1257,99 @@ document.getElementById('resetStatsBtn').addEventListener('click', () => {
     renderStats();
   });
 });
+
+// ---- 学習記録のバックアップ(書き出し/読み込み) ----
+document.getElementById('exportStatsBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(stats, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'ievent_quiz_stats_' + todayKey().replace(/-/g, '') + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+document.getElementById('importStatsBtn').addEventListener('click', () => document.getElementById('importStatsFile').click());
+document.getElementById('importStatsFile').addEventListener('change', e => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try { data = JSON.parse(reader.result); } catch (err) { data = null; }
+    if (!data || typeof data.perQuestion !== 'object' || data.perQuestion === null) {
+      showAlert('読み込めませんでした。このアプリで書き出した記録ファイルを選んでください。');
+      return;
+    }
+    showConfirm('現在の学習記録を、読み込んだ記録で置き換えます。よろしいですか？', () => {
+      stats = data;
+      saveStats();
+      renderStats();
+    });
+  };
+  reader.readAsText(file);
+});
+
+// ---- 表示テーマ(ライト/ダーク) ----
+const THEME_KEY = 'ievent_quiz_theme';
+function applyTheme(t) {
+  if (t) document.documentElement.setAttribute('data-theme', t);
+  else document.documentElement.removeAttribute('data-theme');
+}
+try { applyTheme(localStorage.getItem(THEME_KEY) || ''); } catch (e) {}
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const attr = document.documentElement.getAttribute('data-theme');
+  const isDark = attr === 'dark' || (attr !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const next = isDark ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+});
+
+// ---- キーボード操作(パソコン用) ----
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const target = e.target || {};
+  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+  if (target.id === 'quitBtn' || target.id === 'flashQuit') return;
+  if (!document.getElementById('modalOverlay').classList.contains('hidden')) return;
+  const visible = id => !document.getElementById(id).classList.contains('hidden');
+  const isAction = e.key === 'Enter' || e.key === ' ';
+  const handled = () => {
+    e.preventDefault();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  };
+  if (visible('quizScreen')) {
+    const q = activeQuestions[currentIndex];
+    if (!q) return;
+    const nextBtn = document.getElementById('nextBtn');
+    if (/^[1-4]$/.test(e.key) && q.cat === 'mc') {
+      const btn = document.querySelectorAll('#mcArea .option-btn')[Number(e.key) - 1];
+      if (btn && !btn.disabled) { handled(); btn.click(); }
+      return;
+    }
+    if (q.cat !== 'mc' && visible('shortArea')) {
+      const showBtn = document.getElementById('showAnswerBtn');
+      if (!showBtn.classList.contains('hidden')) {
+        if (isAction) { handled(); showBtn.click(); }
+        return;
+      }
+      if (e.key === '1' || e.key === '2') {
+        handled();
+        document.getElementById(e.key === '1' ? 'markCorrect' : 'markWrong').click();
+        return;
+      }
+    }
+    if ((isAction || e.key === 'ArrowRight') && !nextBtn.disabled) { handled(); nextBtn.click(); }
+  } else if (visible('flashScreen')) {
+    if (isAction) { handled(); document.getElementById('flashCard').click(); }
+    else if (e.key === 'ArrowRight') { handled(); document.getElementById('flashNext').click(); }
+    else if (e.key === 'ArrowLeft') { handled(); document.getElementById('flashPrev').click(); }
+  }
+});
+
+updateHomeSummary();
 </script>
 </body>
 </html>
