@@ -262,6 +262,10 @@
       <span class="mode-title">🎯 苦手優先クイズ</span>
       <span class="mode-desc">よく間違える問題・まだ解いていない問題を優先的に出題。</span>
     </button>
+    <button class="mode-btn" id="modeCloze">
+      <span class="mode-title">穴埋め問題モード <span id="clozeModeCount"></span></span>
+      <span class="mode-desc">教科書の文の空欄3か所を、各4択で埋める問題だけを出題。出題数は「出題の設定」で変更できる。</span>
+    </button>
     <button class="mode-btn" id="modeReview">
       <span class="mode-title">間違えた問題の復習 <span id="reviewCount"></span></span>
       <span class="mode-desc">直近で間違えた問題だけを出題。正解すると復習対象から外れる。</span>
@@ -318,6 +322,7 @@
       <div class="mode-checks">
         <label class="check"><input type="checkbox" class="set-mode" value="normal"> 通常クイズ</label>
         <label class="check"><input type="checkbox" class="set-mode" value="weak"> 苦手優先クイズ</label>
+        <label class="check"><input type="checkbox" class="set-mode" value="cloze"> 穴埋め問題モード</label>
         <label class="check"><input type="checkbox" class="set-mode" value="exam"> 模擬試験</label>
         <label class="check"><input type="checkbox" class="set-mode" value="sets"> 10問チャレンジ</label>
       </div>
@@ -331,6 +336,14 @@
           <option value="shuffle">シャッフル</option>
           <option value="ordered">教科書の順(登録順)</option>
         </select>
+      </div>
+    </div>
+
+    <div class="set-group">
+      <div class="row">
+        <span>穴埋め問題モードの出題数</span>
+        <input type="number" id="setClozeCount" min="0" max="500">
+        <span>問(0 = 全問)</span>
       </div>
     </div>
 
@@ -1594,9 +1607,10 @@ const DEFAULT_SETTINGS = {
   excludeRecent: true,   // 最近正解した問題を出さない
   excludeDays: 1,        // 何日間出さないか(1 = 今日正解した問題だけ)
   excludeMastered: false, // 習得済みの問題を出さない
-  excludeModes: {normal: true, weak: true, exam: false, sets: false}, // 除外を適用するモード
+  excludeModes: {normal: true, weak: true, cloze: true, exam: false, sets: false}, // 除外を適用するモード
   normalOrder: 'shuffle', // 通常クイズの出題順(shuffle / ordered)
   weakCount: 20,         // 苦手優先クイズの出題数
+  clozeCount: 10,        // 穴埋め問題モードの出題数(0 = 全問)
   dailyGoal: 0           // 今日の目標問題数(0 = 設定しない)
 };
 function getSettings() {
@@ -1692,6 +1706,8 @@ function updateHomeSummary() {
   updateExcludeNote();
   const reviewN = QUESTIONS.filter(isWrongNow).length;
   const bookmarkN = QUESTIONS.filter(isBookmarked).length;
+  const clozeN = applyExclusion(getClozePool(), 'cloze').length;
+  document.getElementById('clozeModeCount').textContent = `(出題可能 ${clozeN}問)`;
   document.getElementById('reviewCount').textContent = reviewN > 0 ? `(${reviewN}問)` : '';
   document.getElementById('bookmarkCount').textContent = bookmarkN > 0 ? `(${bookmarkN}問)` : '';
 }
@@ -1747,6 +1763,11 @@ CHAPTERS.forEach(ch => {
   chapterChecksEl.appendChild(label);
 });
 
+// 穴埋め問題モード用: 出題カテゴリのチェックに関係なく、対象の章の穴埋め問題だけを返す
+function getClozePool() {
+  const chaps = Array.from(document.querySelectorAll('.chapter-check:checked')).map(c => c.value);
+  return QUESTIONS.filter(q => q.cat === 'cloze' && chaps.includes(q.chapter));
+}
 function getFilteredPool() {
   const cats = Array.from(document.querySelectorAll('.cat-check:checked')).map(c => c.value);
   const chaps = Array.from(document.querySelectorAll('.chapter-check:checked')).map(c => c.value);
@@ -1886,8 +1907,8 @@ function finishByTimeout() {
 let examTimeLimitMin = 0;
 
 function launchQuiz(mode, skipExclusion) {
-  let pool = getFilteredPool();
-  if (pool.length === 0) { showAlert('出題対象がありません。フィルタを見直してください。'); return; }
+  let pool = mode === 'cloze' ? getClozePool() : getFilteredPool();
+  if (pool.length === 0) { showAlert(mode === 'cloze' ? '出題対象の穴埋め問題がありません。\n対象の章の選択を見直してください。' : '出題対象がありません。フィルタを見直してください。'); return; }
   if (!skipExclusion) {
     const remaining = applyExclusion(pool, mode);
     if (remaining.length === 0) {
@@ -1907,6 +1928,9 @@ function launchQuiz(mode, skipExclusion) {
   examTimeLimitMin = 0;
   if (mode === 'normal' && getSettings().normalOrder === 'ordered') {
     activeQuestions = pool;
+  } else if (mode === 'cloze') {
+    const n = getSettings().clozeCount;
+    activeQuestions = shuffle(pool).slice(0, n > 0 ? Math.min(n, pool.length) : pool.length);
   } else if (mode === 'normal' || mode === 'review' || mode === 'bookmark') {
     activeQuestions = shuffle(pool);
   } else if (mode === 'weak') {
@@ -1925,6 +1949,7 @@ function launchQuiz(mode, skipExclusion) {
 
 document.getElementById('modeNormal').addEventListener('click', () => launchQuiz('normal'));
 document.getElementById('modeWeak').addEventListener('click', () => launchQuiz('weak'));
+document.getElementById('modeCloze').addEventListener('click', () => launchQuiz('cloze'));
 document.getElementById('modeReview').addEventListener('click', () => launchQuiz('review'));
 document.getElementById('modeBookmark').addEventListener('click', () => launchQuiz('bookmark'));
 document.getElementById('modeExam').addEventListener('click', () => showScreen('examSetupScreen'));
@@ -1944,7 +1969,7 @@ function renderQuestion() {
   document.getElementById('progressText').textContent = `問題 ${currentIndex + 1} / ${activeQuestions.length}`;
   document.getElementById('scoreText').textContent = `正解 ${score}`;
   document.getElementById('progressFill').style.width = `${(currentIndex / activeQuestions.length) * 100}%`;
-  document.getElementById('qTag').textContent = CAT_LABELS[q.cat] + ({exam:'・模擬試験', weak:'・苦手優先', set:'・10問チャレンジ', review:'・間違えた問題の復習', bookmark:'・ブックマーク', retry:'・間違えた問題の再挑戦'}[quizMode] || '');
+  document.getElementById('qTag').textContent = CAT_LABELS[q.cat] + ({exam:'・模擬試験', weak:'・苦手優先', set:'・10問チャレンジ', review:'・間違えた問題の復習', bookmark:'・ブックマーク', retry:'・間違えた問題の再挑戦', cloze:'・穴埋めモード'}[quizMode] || '');
   const qTextEl = document.getElementById('qText');
   qTextEl.classList.remove('cloze-text');
   qTextEl.textContent = q.q;
@@ -2408,6 +2433,7 @@ function renderSettings() {
   document.querySelectorAll('.set-mode').forEach(c => { c.checked = !!cfg.excludeModes[c.value]; });
   document.getElementById('setNormalOrder').value = cfg.normalOrder;
   document.getElementById('setWeakCount').value = cfg.weakCount;
+  document.getElementById('setClozeCount').value = cfg.clozeCount;
   document.getElementById('setDailyGoal').value = cfg.dailyGoal;
 }
 function openSettings() {
@@ -2430,6 +2456,7 @@ function readSettingsFromForm() {
     excludeModes: modes,
     normalOrder: document.getElementById('setNormalOrder').value === 'ordered' ? 'ordered' : 'shuffle',
     weakCount: clampInt(document.getElementById('setWeakCount').value, 5, 100, cfg.weakCount),
+    clozeCount: clampInt(document.getElementById('setClozeCount').value, 0, 500, cfg.clozeCount),
     dailyGoal: clampInt(document.getElementById('setDailyGoal').value, 0, 500, cfg.dailyGoal)
   });
 }
@@ -2444,7 +2471,7 @@ document.getElementById('settingsResetBtn').addEventListener('click', () => {
   });
 });
 // 出題フィルタを変えたら、ホームの「除外中」表示を更新する
-document.getElementById('homeScreen').addEventListener('change', () => updateExcludeNote());
+document.getElementById('homeScreen').addEventListener('change', () => updateHomeSummary());
 
 // ---- 学習記録のバックアップ(書き出し/読み込み) ----
 document.getElementById('exportStatsBtn').addEventListener('click', () => {
