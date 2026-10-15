@@ -198,6 +198,14 @@
   .week-col .wk-num { margin-bottom: 2px; color: var(--text); }
   .week-col .wk-day { margin-top: 4px; }
   .kbd-hint { font-size: 0.74rem; color: var(--muted); margin-top: 12px; line-height: 1.6; }
+  .home-note { font-size: 0.78rem; color: var(--muted); margin: 6px 0 2px; line-height: 1.5; }
+  .home-note a, .link-btn { color: var(--primary); cursor: pointer; text-decoration: underline; background: none; padding: 0; font-size: inherit; }
+  .set-group { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .set-group:last-of-type { border-bottom: none; }
+  .set-help { font-size: 0.76rem; color: var(--muted); margin: 2px 0 0 26px; line-height: 1.5; }
+  .row select { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text); }
+  .mode-checks { display: flex; flex-wrap: wrap; gap: 2px 16px; margin-left: 26px; }
+  .mode-checks label.check { padding: 3px 0; font-size: 0.85rem; }
   @media (max-width: 480px) {
     body { padding: 12px 8px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
     .card { padding: 16px; border-radius: 12px; }
@@ -227,6 +235,7 @@
     <label class="check"><input type="checkbox" class="cat-check" value="mc" checked> 選択式(4択)問題</label>
     <div class="section-title">対象の章</div>
     <div id="chapterChecks"></div>
+    <div class="home-note" id="excludeNote"></div>
 
     <div class="section-title">モードを選ぶ</div>
     <button class="mode-btn" id="modeNormal">
@@ -261,6 +270,72 @@
       <span class="mode-title">📊 学習状況を見る</span>
       <span class="mode-desc">正答率・苦手問題ランキング・ブックマーク一覧を確認。</span>
     </button>
+    <button class="mode-btn" id="modeSettings">
+      <span class="mode-title">出題の設定</span>
+      <span class="mode-desc">今日正解した問題を出さない、出題順、今日の目標問題数などを変更。</span>
+    </button>
+  </div>
+
+  <!-- 設定画面 -->
+  <div class="card hidden" id="settingsScreen">
+    <span class="back-link" id="settingsBack">← ホームに戻る</span>
+    <div class="section-title">出題の設定</div>
+    <div style="font-size:0.78rem; color:var(--muted); margin-bottom:6px;">変更は自動で保存されます。</div>
+
+    <div class="set-group">
+      <label class="check"><input type="checkbox" id="setExcludeRecent"> 最近正解した問題を出さない</label>
+      <div class="row" style="margin-left:26px;">
+        <span>正解してから</span>
+        <input type="number" id="setExcludeDays" min="1" max="365">
+        <span>日間(1 = 今日正解した問題だけ)</span>
+      </div>
+      <div class="set-help">一度正解した問題を、しばらく出題対象から外します。間違えた問題は外れません。</div>
+    </div>
+
+    <div class="set-group">
+      <label class="check"><input type="checkbox" id="setExcludeMastered"> 習得済みの問題を出さない</label>
+      <div class="set-help">習得済み = 2回以上正解していて、正答率が80%以上、かつ直近の解答が正解の問題。</div>
+    </div>
+
+    <div class="set-group">
+      <div class="section-title" style="margin-top:0;">上の除外を適用するモード</div>
+      <div class="mode-checks">
+        <label class="check"><input type="checkbox" class="set-mode" value="normal"> 通常クイズ</label>
+        <label class="check"><input type="checkbox" class="set-mode" value="weak"> 苦手優先クイズ</label>
+        <label class="check"><input type="checkbox" class="set-mode" value="exam"> 模擬試験</label>
+        <label class="check"><input type="checkbox" class="set-mode" value="sets"> 10問チャレンジ</label>
+      </div>
+      <div class="set-help">10問チャレンジは、除外するとセットの中身が変わり、完了記録が合わなくなるため、通常はオフにしておくのがおすすめです。復習・ブックマーク・暗記カードには適用されません。</div>
+    </div>
+
+    <div class="set-group">
+      <div class="row">
+        <span>通常クイズの出題順</span>
+        <select id="setNormalOrder">
+          <option value="shuffle">シャッフル</option>
+          <option value="ordered">教科書の順(登録順)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="set-group">
+      <div class="row">
+        <span>苦手優先クイズの出題数</span>
+        <input type="number" id="setWeakCount" min="5" max="100">
+        <span>問</span>
+      </div>
+    </div>
+
+    <div class="set-group">
+      <div class="row">
+        <span>今日の目標問題数</span>
+        <input type="number" id="setDailyGoal" min="0" max="500">
+        <span>問(0 = 設定しない)</span>
+      </div>
+      <div class="set-help">ホーム画面に、今日の解答数が目標に対して何問かを表示します。</div>
+    </div>
+
+    <button class="btn-secondary" id="settingsResetBtn" style="width:100%; margin-top:16px;">設定を初期値に戻す</button>
   </div>
 
   <!-- 模擬試験の設定 -->
@@ -1331,6 +1406,7 @@ function recordResult(id, isCorrect) {
   s.seen++;
   if (isCorrect) s.correct++; else s.wrong++;
   s.last = isCorrect; // 直近の正誤(復習モード・習得度の判定に使用)
+  if (isCorrect) s.lastCorrectDate = todayKey(); // 最後に正解した日(「最近正解した問題を出さない」設定に使用)
   if (!stats.daily) stats.daily = {};
   const k = todayKey();
   const d = stats.daily[k] || (stats.daily[k] = {answered:0, correct:0});
@@ -1338,6 +1414,51 @@ function recordResult(id, isCorrect) {
   if (isCorrect) d.correct++;
   saveStats();
 }
+// ---- 出題の設定(学習記録と同じ保存場所に保存し、書き出し/読み込みにも含まれる) ----
+const DEFAULT_SETTINGS = {
+  excludeRecent: true,   // 最近正解した問題を出さない
+  excludeDays: 1,        // 何日間出さないか(1 = 今日正解した問題だけ)
+  excludeMastered: false, // 習得済みの問題を出さない
+  excludeModes: {normal: true, weak: true, exam: false, sets: false}, // 除外を適用するモード
+  normalOrder: 'shuffle', // 通常クイズの出題順(shuffle / ordered)
+  weakCount: 20,         // 苦手優先クイズの出題数
+  dailyGoal: 0           // 今日の目標問題数(0 = 設定しない)
+};
+function getSettings() {
+  const st = (stats && stats.settings) || {};
+  return Object.assign({}, DEFAULT_SETTINGS, st, {
+    excludeModes: Object.assign({}, DEFAULT_SETTINGS.excludeModes, st.excludeModes || {})
+  });
+}
+function updateSettings(patch) {
+  stats.settings = Object.assign({}, getSettings(), patch);
+  saveStats();
+}
+function daysSince(dateKey) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey || '');
+  if (!m) return Infinity;
+  const then = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((today - then) / 86400000);
+}
+// 設定に基づき、この問題を出題対象から外すか
+function isExcludedBySettings(q) {
+  const cfg = getSettings();
+  const s = stats.perQuestion[q.id];
+  if (cfg.excludeRecent && s && s.lastCorrectDate && s.last !== false &&
+      daysSince(s.lastCorrectDate) < Math.max(1, cfg.excludeDays)) return true;
+  if (cfg.excludeMastered && masteryOf(q) === 'mastered') return true;
+  return false;
+}
+// そのモードに除外設定を適用した問題リストを返す
+function applyExclusion(pool, mode) {
+  const cfg = getSettings();
+  if (!cfg.excludeModes[mode]) return pool;
+  if (!cfg.excludeRecent && !cfg.excludeMastered) return pool;
+  return pool.filter(q => !isExcludedBySettings(q));
+}
+
 // 直近で間違えた状態か(旧データは直近の正誤がないため、誤答歴があれば対象とする)
 function isWrongNow(q) {
   const s = stats.perQuestion[q.id];
@@ -1368,11 +1489,32 @@ function calcStreak() {
   }
   return streak;
 }
+// ホーム画面: 現在の設定で出題対象から外れている問題数を表示
+function updateExcludeNote() {
+  const note = document.getElementById('excludeNote');
+  const cfg = getSettings();
+  if (!cfg.excludeRecent && !cfg.excludeMastered) { note.innerHTML = ''; return; }
+  const pool = getFilteredPool();
+  const excluded = pool.filter(isExcludedBySettings).length;
+  const rules = [];
+  if (cfg.excludeRecent) rules.push(cfg.excludeDays <= 1 ? '今日正解した問題' : `${cfg.excludeDays}日以内に正解した問題`);
+  if (cfg.excludeMastered) rules.push('習得済みの問題');
+  note.innerHTML = '';
+  note.appendChild(document.createTextNode(`除外中: ${rules.join('・')}(選択範囲の${pool.length}問中 ${excluded}問)。`));
+  const link = document.createElement('button');
+  link.className = 'link-btn';
+  link.textContent = '設定を変更';
+  link.addEventListener('click', openSettings);
+  note.appendChild(link);
+}
 function updateHomeSummary() {
   const todayRec = (stats.daily && stats.daily[todayKey()]) || {answered:0};
   const mastered = QUESTIONS.filter(q => masteryOf(q) === 'mastered').length;
+  const goal = getSettings().dailyGoal;
+  const todayText = goal > 0 ? `今日 ${todayRec.answered} / ${goal}問${todayRec.answered >= goal ? '(達成)' : ''}` : `今日 ${todayRec.answered}問`;
   document.getElementById('homeSummary').textContent =
-    `連続学習 ${calcStreak()}日 ・ 今日 ${todayRec.answered}問 ・ 習得済み ${mastered} / ${QUESTIONS.length}問`;
+    `連続学習 ${calcStreak()}日 ・ ${todayText} ・ 習得済み ${mastered} / ${QUESTIONS.length}問`;
+  updateExcludeNote();
   const reviewN = QUESTIONS.filter(isWrongNow).length;
   const bookmarkN = QUESTIONS.filter(isBookmarked).length;
   document.getElementById('reviewCount').textContent = reviewN > 0 ? `(${reviewN}問)` : '';
@@ -1413,7 +1555,7 @@ function showConfirm(message, onOk) {
 }
 
 // ---- 画面切り替え ----
-const screens = ['homeScreen','examSetupScreen','quizScreen','flashScreen','setsScreen','resultScreen','statsScreen'];
+const screens = ['homeScreen','examSetupScreen','quizScreen','flashScreen','setsScreen','resultScreen','statsScreen','settingsScreen'];
 function showScreen(id) {
   screens.forEach(s => document.getElementById(s).classList.toggle('hidden', s !== id));
   document.getElementById('homeSummary').classList.toggle('hidden', id !== 'homeScreen');
@@ -1440,7 +1582,7 @@ document.getElementById('examTotalQCount').textContent = QUESTIONS.length;
 
 // ---- 10問チャレンジ(セット学習) ----
 function getSets() {
-  const pool = getFilteredPool();
+  const pool = applyExclusion(getFilteredPool(), 'sets');
   const sets = [];
   for (let i = 0; i < pool.length; i += 10) sets.push(pool.slice(i, i + 10));
   return sets;
@@ -1568,9 +1710,17 @@ function finishByTimeout() {
 
 let examTimeLimitMin = 0;
 
-function launchQuiz(mode) {
+function launchQuiz(mode, skipExclusion) {
   let pool = getFilteredPool();
   if (pool.length === 0) { showAlert('出題対象がありません。フィルタを見直してください。'); return; }
+  if (!skipExclusion) {
+    const remaining = applyExclusion(pool, mode);
+    if (remaining.length === 0) {
+      showConfirm('設定により、出題できる問題がなくなりました。\n(今日正解した問題などを除外しています)\n\n今回だけ除外せずに出題しますか？\n除外の設定は「出題の設定」から変更できます。', () => launchQuiz(mode, true));
+      return;
+    }
+    pool = remaining;
+  }
   if (mode === 'review') {
     pool = pool.filter(isWrongNow);
     if (pool.length === 0) { showAlert('復習対象の問題はありません。\n(選んだ範囲に、直近で間違えた問題がありません)'); return; }
@@ -1580,10 +1730,12 @@ function launchQuiz(mode) {
   }
   quizMode = mode;
   examTimeLimitMin = 0;
-  if (mode === 'normal' || mode === 'review' || mode === 'bookmark') {
+  if (mode === 'normal' && getSettings().normalOrder === 'ordered') {
+    activeQuestions = pool;
+  } else if (mode === 'normal' || mode === 'review' || mode === 'bookmark') {
     activeQuestions = shuffle(pool);
   } else if (mode === 'weak') {
-    activeQuestions = weightedSample(pool, Math.min(20, pool.length));
+    activeQuestions = weightedSample(pool, Math.min(getSettings().weakCount, pool.length));
   } else if (mode === 'exam') {
     const count = Math.max(1, parseInt(document.getElementById('examCount').value) || 20);
     examPassPct = Math.max(1, Math.min(100, parseInt(document.getElementById('examPass').value) || 70));
@@ -1957,11 +2109,58 @@ function renderStats() {
 
 document.getElementById('resetStatsBtn').addEventListener('click', () => {
   showConfirm('全ての学習記録(正答率・ブックマーク)を削除します。よろしいですか？', () => {
-    stats = {perQuestion: {}};
+    stats = {perQuestion: {}, settings: stats.settings}; // 出題の設定は残す
     saveStats();
     renderStats();
   });
 });
+
+// ---- 出題の設定画面 ----
+function renderSettings() {
+  const cfg = getSettings();
+  document.getElementById('setExcludeRecent').checked = cfg.excludeRecent;
+  document.getElementById('setExcludeDays').value = cfg.excludeDays;
+  document.getElementById('setExcludeMastered').checked = cfg.excludeMastered;
+  document.querySelectorAll('.set-mode').forEach(c => { c.checked = !!cfg.excludeModes[c.value]; });
+  document.getElementById('setNormalOrder').value = cfg.normalOrder;
+  document.getElementById('setWeakCount').value = cfg.weakCount;
+  document.getElementById('setDailyGoal').value = cfg.dailyGoal;
+}
+function openSettings() {
+  renderSettings();
+  showScreen('settingsScreen');
+}
+function clampInt(value, min, max, fallback) {
+  const n = parseInt(value, 10);
+  if (isNaN(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
+}
+function readSettingsFromForm() {
+  const cfg = getSettings();
+  const modes = {};
+  document.querySelectorAll('.set-mode').forEach(c => { modes[c.value] = c.checked; });
+  updateSettings({
+    excludeRecent: document.getElementById('setExcludeRecent').checked,
+    excludeDays: clampInt(document.getElementById('setExcludeDays').value, 1, 365, cfg.excludeDays),
+    excludeMastered: document.getElementById('setExcludeMastered').checked,
+    excludeModes: modes,
+    normalOrder: document.getElementById('setNormalOrder').value === 'ordered' ? 'ordered' : 'shuffle',
+    weakCount: clampInt(document.getElementById('setWeakCount').value, 5, 100, cfg.weakCount),
+    dailyGoal: clampInt(document.getElementById('setDailyGoal').value, 0, 500, cfg.dailyGoal)
+  });
+}
+document.getElementById('modeSettings').addEventListener('click', openSettings);
+document.getElementById('settingsBack').addEventListener('click', () => showScreen('homeScreen'));
+document.getElementById('settingsScreen').addEventListener('change', readSettingsFromForm);
+document.getElementById('settingsResetBtn').addEventListener('click', () => {
+  showConfirm('出題の設定を初期値に戻します。学習記録は変わりません。よろしいですか？', () => {
+    delete stats.settings;
+    saveStats();
+    renderSettings();
+  });
+});
+// 出題フィルタを変えたら、ホームの「除外中」表示を更新する
+document.getElementById('homeScreen').addEventListener('change', () => updateExcludeNote());
 
 // ---- 学習記録のバックアップ(書き出し/読み込み) ----
 document.getElementById('exportStatsBtn').addEventListener('click', () => {
